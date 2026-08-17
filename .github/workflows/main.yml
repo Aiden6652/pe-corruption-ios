@@ -45,7 +45,7 @@ jobs:
       - name: Setup Haxe
         uses: krdlab/setup-haxe@master # Changed to master branch for ARM64 support
         with:
-          haxe-version: 4.2.5
+          haxe-version: 4.3.6
 
       - name: Restore Cache
         uses: actions/cache@main
@@ -141,7 +141,7 @@ jobs:
       - name: Setup Haxe
         uses: krdlab/setup-haxe@master # Changed to master branch for ARM64 support
         with:
-          haxe-version: 4.2.5
+          haxe-version: 4.3.6
 
       - name: Restore Cache
         uses: actions/cache@main
