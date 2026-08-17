@@ -180,20 +180,19 @@ jobs:
       - name: Building iOS (release)
         run: |
           set -euxo pipefail
-          # 1) Generate xcodeproj only (no build, no signing from lime)
-          haxelib install lime-samples
-          haxelib run lime create ios -Dios.archs="arm64" --app-version="4.0.0-${{ github.run_id}}" 2>&1 | tail -15
-          ls export/release/ios/
-          # 2) Build with xcodebuild, signing fully disabled
-          cd export/release/ios
-          xcodebuild -project PsychEngine.xcodeproj -target PsychEngine \
-            -configuration Release -sdk iphoneos \
-            ARCHS=arm64 ONLY_ACTIVE_ARCH=YES \
-            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            build 2>&1 | tail -40
-          cd ../../..
-          find export -name "*.app" -type d | head -5
+          # lime build generates xcodeproj + compiles Haxe; signing failure is expected,
+          # the compiled .app remains for us to ad-hoc re-sign
+          haxelib run lime build ios -Dios.archs=arm64 --app-version="4.0.0-${{ github.run_id}}" 2>&1 | tail -25 || true
+          # Find compiled app (lime writes to export/release/ios/build/Release-iphoneos/)
+          APP_PATH=$(find export -name "*.app" -type d | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "=== No .app produced. Listing export: ==="
+            find export -maxdepth 6 -type d 2>/dev/null | head -30
+            exit 1
+          fi
+          echo "APP_PATH=$APP_PATH"
+          # Ad-hoc re-sign so the IPA is installable/re-signable via SideStore
+          codesign --force --sign - "$APP_PATH" || echo 'codesign adhoc failed (expected if already unsigned)'
 
       - name: Package IPA (unsigned)
         run: |
