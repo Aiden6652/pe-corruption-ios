@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        build_type: [debug, release] # Matrix for Android debug and release builds
+        build_type: [release]
 
     steps:
       - name: Checkout
@@ -20,10 +20,13 @@ jobs:
       - name: Fetch game assets from upstream (sparse)
         run: |
           set -euxo pipefail
+          mkdir -p $GITHUB_WORKSPACE/assets
+          rm -rf /tmp/upstream
           git clone --depth 1 --filter=blob:none --sparse https://github.com/softbf395/psych-engine-0.6.3-iOS-port.git /tmp/upstream
           cd /tmp/upstream
           git sparse-checkout set assets
-          cp -r assets/* $GITHUB_WORKSPACE/assets/
+          cp -r assets/. $GITHUB_WORKSPACE/assets/
+          cd $GITHUB_WORKSPACE
           rm -rf /tmp/upstream
           ls $GITHUB_WORKSPACE/assets/ | head
 
@@ -116,7 +119,7 @@ jobs:
     runs-on: macos-latest # iOS builds require macOS runners
     strategy:
       matrix:
-        build_type: [debug, release] # Matrix for iOS debug and release builds
+        build_type: [release]
 
     steps:
       - name: Checkout
@@ -125,10 +128,13 @@ jobs:
       - name: Fetch game assets from upstream (sparse)
         run: |
           set -euxo pipefail
+          mkdir -p $GITHUB_WORKSPACE/assets
+          rm -rf /tmp/upstream
           git clone --depth 1 --filter=blob:none --sparse https://github.com/softbf395/psych-engine-0.6.3-iOS-port.git /tmp/upstream
           cd /tmp/upstream
           git sparse-checkout set assets
-          cp -r assets/* $GITHUB_WORKSPACE/assets/
+          cp -r assets/. $GITHUB_WORKSPACE/assets/
+          cd $GITHUB_WORKSPACE
           rm -rf /tmp/upstream
           ls $GITHUB_WORKSPACE/assets/ | head
 
