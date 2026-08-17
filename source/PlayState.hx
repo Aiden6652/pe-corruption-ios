@@ -1172,7 +1172,7 @@ class PlayState extends MusicBeatState
 		timeTxt.cameras = [camHUD];
 		doof.cameras = [camHUD];
 
-		#if mobile
+		#if android
 		addAndroidControls();
 		androidc.visible = false;
 		#end
@@ -2068,7 +2068,7 @@ class PlayState extends MusicBeatState
 		var ret:Dynamic = callOnLuas('onStartCountdown', [], false);
 		if(ret != FunkinLua.Function_Stop) {
 			if (skipCountdown || startOnTime > 0) skipArrowStartTween = true;
-			#if mobile
+			#if android
 			androidc.visible = true;
 			#end
 			generateStaticArrows(0);
@@ -3886,7 +3886,7 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		#if mobile
+		#if android
 		androidc.visible = false;
 		#end
 		timeBarBG.visible = false;
