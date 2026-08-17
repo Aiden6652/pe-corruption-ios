@@ -17,6 +17,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@main
 
+      - name: Fetch game assets from upstream (sparse)
+        run: |
+          set -euxo pipefail
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/softbf395/psych-engine-0.6.3-iOS-port.git /tmp/upstream
+          cd /tmp/upstream
+          git sparse-checkout set assets
+          cp -r assets/* $GITHUB_WORKSPACE/assets/
+          rm -rf /tmp/upstream
+          ls $GITHUB_WORKSPACE/assets/ | head
+
       - name: Setup Android NDK
         uses: nttld/setup-ndk@main
         id: setup-ndk
@@ -102,6 +112,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@main
+
+      - name: Fetch game assets from upstream (sparse)
+        run: |
+          set -euxo pipefail
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/softbf395/psych-engine-0.6.3-iOS-port.git /tmp/upstream
+          cd /tmp/upstream
+          git sparse-checkout set assets
+          cp -r assets/* $GITHUB_WORKSPACE/assets/
+          rm -rf /tmp/upstream
+          ls $GITHUB_WORKSPACE/assets/ | head
 
       - name: Setup Haxe
         uses: krdlab/setup-haxe@master # Changed to master branch for ARM64 support
