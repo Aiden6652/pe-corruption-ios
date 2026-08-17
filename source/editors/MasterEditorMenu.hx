@@ -83,9 +83,9 @@ class MasterEditorMenu extends MusicBeatState
 
 		FlxG.mouse.visible = false;
 
-		#if mobile
+		#if android
 		addVirtualPad(FULL, A_B);
-		#end
+		
 
 		super.create();
 	}
