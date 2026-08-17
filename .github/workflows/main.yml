@@ -1,0 +1,181 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Build
+
+# Controls when the action will run.
+on: [push, workflow_dispatch]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  androidBuild:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build_type: [debug, release] # Matrix for Android debug and release builds
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@main
+        id: setup-ndk
+        with:
+          ndk-version: r21e
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@main
+        with:
+          distribution: 'zulu'
+          java-version: '18'
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@master # Changed to master branch for ARM64 support
+        with:
+          haxe-version: 4.2.5
+
+      - name: Restore Cache
+        uses: actions/cache@main
+        with:
+          # Caching Haxelib and build artifacts to speed up subsequent builds
+          key: cache-build-android-${{ matrix.build_type }}-${{ hashFiles('**/haxelib.json') }}
+          path: |
+            .haxelib/
+            export/${{ matrix.build_type }}/android/haxe/
+            export/${{ matrix.build_type }}/android/obj/
+          restore-keys: |
+            cache-build-android-${{ matrix.build_type }}-
+
+      - name: Installing Libraries
+        run: |
+          set -euxo pipefail # Exit immediately if a command exits with a non-zero status.
+          echo "Setting up haxelib path..."
+          haxelib setup ~/haxelib
+          echo "Haxelib setup complete. Listing haxelib paths:"
+          haxelib path
+          echo "Installing hxcpp..."
+          haxelib install hxcpp # Removed > /dev/null to see output
+          echo "hxcpp installed. Listing installed haxelibs:"
+          haxelib list
+          echo "Running Haxe analyzer..."
+          haxe -cp ./actions -D analyzer-optimize -main Main --interp
+
+      - name: Configure Android
+        run: |
+          set -euxo pipefail
+          haxelib run lime setup -alias -y
+          haxelib run lime config ANDROID_SDK $ANDROID_HOME
+          haxelib run lime config ANDROID_NDK_ROOT $ANDROID_NDK_HOME
+          haxelib run lime config JAVA_HOME $JAVA_HOME
+          haxelib run lime config ANDROID_SETUP true
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+
+      - name: Building Android (${{ matrix.build_type }})
+        run: |
+          set -euxo pipefail
+          haxelib run lime build android ${{ matrix.build_type == 'debug' && '-debug' || '' }} --app-version="4.0.0-${{ github.run_id}}"
+
+      - name: Upload Android Artifact (${{ matrix.build_type }})
+        uses: actions/upload-artifact@main
+        with:
+          name: androidBuild-${{ matrix.build_type }}
+          path: export/${{ matrix.build_type }}/android/bin/app/build/outputs/apk/${{ matrix.build_type }} # Path adjusted for debug/release APKs
+          if-no-files-found: error
+
+      - name: Save Cache
+        uses: actions/cache@main
+        with:
+          # Saving cache for future builds
+          key: cache-build-android-${{ matrix.build_type }}-${{ hashFiles('**/haxelib.json') }}
+          path: |
+            .haxelib/
+            export/${{ matrix.build_type }}/android/haxe/
+            export/${{ matrix.build_type }}/android/obj/
+
+  iosBuild:
+    runs-on: macos-latest # iOS builds require macOS runners
+    strategy:
+      matrix:
+        build_type: [debug, release] # Matrix for iOS debug and release builds
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@master # Changed to master branch for ARM64 support
+        with:
+          haxe-version: 4.2.5
+
+      - name: Restore Cache
+        uses: actions/cache@main
+        with:
+          # Caching Haxelib and build artifacts specific to iOS
+          key: cache-build-ios-${{ matrix.build_type }}-${{ hashFiles('**/haxelib.json') }}
+          path: |
+            .haxelib/
+            export/${{ matrix.build_type }}/ios/haxe/
+            export/${{ matrix.build_type }}/ios/obj/
+          restore-keys: |
+            cache-build-ios-${{ matrix.build_type }}-
+
+      - name: Installing Libraries
+        run: |
+          set -euxo pipefail # Exit immediately if a command exits with a non-zero status.
+          echo "Setting up haxelib path..."
+          haxelib setup ~/haxelib
+          echo "Installing hmm..."
+          haxelib install hmm
+          echo "Installing all dependencies via hmm (includes polymod)..."
+          haxelib run hmm install
+          echo "haxelibs installed:"
+          haxelib list
+          echo "Running Haxe analyzer..."
+          haxe -cp ./actions -D analyzer-optimize -main Main --interp
+
+      - name: Building iOS (${{ matrix.build_type }})
+        run: |
+          set -euxo pipefail
+          # Build unsigned device IPA (no Apple signing - SideStore will re-sign)
+          haxelib run lime build ios ${{ matrix.build_type == 'debug' && '-debug' || '' }} \
+            -Dios-buildtype=release \
+            -Dios-entitlements="" \
+            --app-version="4.0.0-${{ github.run_id}}" \
+            -Dios-target=ios -Dios.archs="arm64" -Dios.version=13.0 \
+            --nocert || haxelib run lime build ios ${{ matrix.build_type == 'debug' && '-debug' || '' }} --app-version="4.0.0-${{ github.run_id}}" -Dios.version=13.0
+
+      - name: Package IPA (unsigned)
+        run: |
+          set -euxo pipefail
+          APP_NAME="PsychEngine"
+          APP_DIR="export/${{ matrix.build_type }}/ios/build/${{ matrix.build_type == 'debug' && 'Debug' || 'Release' }}-iphoneos/${APP_NAME}.app"
+          if [ ! -d "$APP_DIR" ]; then
+            # fallback search
+            APP_DIR=$(find export -name "*.app" -type d | head -1)
+          fi
+          echo "APP_DIR=$APP_DIR"
+          mkdir -p Payload
+          cp -r "$APP_DIR" "Payload/${APP_NAME}.app"
+          # Sign with ad-hoc identity so the IPA is installable/re-signable
+          codesign --force --sign - "Payload/${APP_NAME}.app" || true
+          zip -r "PsychEngine-${{ matrix.build_type }}.ipa" Payload
+          rm -rf Payload
+          ls -lh *.ipa
+
+      - name: Upload iOS Artifact (${{ matrix.build_type }})
+        uses: actions/upload-artifact@main
+        with:
+          name: iosBuild-${{ matrix.build_type }}
+          path: PsychEngine-${{ matrix.build_type }}.ipa
+          if-no-files-found: error
+
+      - name: Save Cache
+        uses: actions/cache@main
+        with:
+          # Saving cache for future iOS builds
+          key: cache-build-ios-${{ matrix.build_type }}-${{ hashFiles('**/haxelib.json') }}
+          path: |
+            .haxelib/
+            export/${{ matrix.build_type }}/ios/haxe/
+            export/${{ matrix.build_type }}/ios/obj/
