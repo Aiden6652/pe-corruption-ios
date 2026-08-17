@@ -1,11 +1,7 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Build
 
-# Controls when the action will run.
 on: [push, workflow_dispatch]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   androidBuild:
     runs-on: ubuntu-latest
@@ -43,28 +39,14 @@ jobs:
           java-version: '18'
 
       - name: Setup Haxe
-        uses: krdlab/setup-haxe@master # Changed to master branch for ARM64 support
+        uses: krdlab/setup-haxe@master
         with:
           haxe-version: 4.3.6
 
-      - name: Restore Cache
-        uses: actions/cache@main
-        with:
-          # Caching Haxelib and build artifacts to speed up subsequent builds
-          key: cache-build-android-${{ matrix.build_type }}-${{ hashFiles('**/haxelib.json') }}
-          path: |
-            .haxelib/
-            export/${{ matrix.build_type }}/android/haxe/
-            export/${{ matrix.build_type }}/android/obj/
-          restore-keys: |
-            cache-build-android-${{ matrix.build_type }}-
-
       - name: Installing Libraries
         run: |
-          set -euxo pipefail # Exit immediately if a command exits with a non-zero status.
-          echo "Setting up haxelib path..."
+          set -euxo pipefail
           haxelib setup ~/haxelib
-          # Install all deps explicitly (avoid hmm format issues)
           haxelib install lime 8.2.3
           haxelib install openfl 9.1.0
           haxelib install flixel 4.11.0
@@ -81,10 +63,7 @@ jobs:
           haxelib install thx.semver
           haxelib install jsonpatch --skip-dependencies
           haxelib install jsonpath --skip-dependencies
-          echo "haxelibs installed:"
           haxelib list
-          echo "Running Haxe analyzer..."
-          haxe -cp ./actions -D analyzer-optimize -main Main --interp
 
       - name: Configure Android
         run: |
@@ -97,30 +76,20 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
-      - name: Building Android (${{ matrix.build_type }})
+      - name: Building Android (release)
         run: |
           set -euxo pipefail
-          haxelib run lime build android ${{ matrix.build_type == 'debug' && '-debug' || '' }} --app-version="4.0.0-${{ github.run_id}}"
+          haxelib run lime build android --app-version="4.0.0-${{ github.run_id}}"
 
-      - name: Upload Android Artifact (${{ matrix.build_type }})
+      - name: Upload Android Artifact (release)
         uses: actions/upload-artifact@main
         with:
-          name: androidBuild-${{ matrix.build_type }}
-          path: export/${{ matrix.build_type }}/android/bin/app/build/outputs/apk/${{ matrix.build_type }} # Path adjusted for debug/release APKs
+          name: androidBuild-release
+          path: export/release/android/bin/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
-      - name: Save Cache
-        uses: actions/cache@main
-        with:
-          # Saving cache for future builds
-          key: cache-build-android-${{ matrix.build_type }}-${{ hashFiles('**/haxelib.json') }}
-          path: |
-            .haxelib/
-            export/${{ matrix.build_type }}/android/haxe/
-            export/${{ matrix.build_type }}/android/obj/
-
   iosBuild:
-    runs-on: macos-latest # iOS builds require macOS runners
+    runs-on: macos-latest
     strategy:
       matrix:
         build_type: [release]
@@ -143,28 +112,14 @@ jobs:
           ls $GITHUB_WORKSPACE/assets/ | head
 
       - name: Setup Haxe
-        uses: krdlab/setup-haxe@master # Changed to master branch for ARM64 support
+        uses: krdlab/setup-haxe@master
         with:
           haxe-version: 4.3.6
 
-      - name: Restore Cache
-        uses: actions/cache@main
-        with:
-          # Caching Haxelib and build artifacts specific to iOS
-          key: cache-build-ios-${{ matrix.build_type }}-${{ hashFiles('**/haxelib.json') }}
-          path: |
-            .haxelib/
-            export/${{ matrix.build_type }}/ios/haxe/
-            export/${{ matrix.build_type }}/ios/obj/
-          restore-keys: |
-            cache-build-ios-${{ matrix.build_type }}-
-
       - name: Installing Libraries
         run: |
-          set -euxo pipefail # Exit immediately if a command exits with a non-zero status.
-          echo "Setting up haxelib path..."
+          set -euxo pipefail
           haxelib setup ~/haxelib
-          # Install all deps explicitly (avoid hmm format issues)
           haxelib install lime 8.2.3
           haxelib install openfl 9.1.0
           haxelib install flixel 4.11.0
@@ -180,18 +135,12 @@ jobs:
           haxelib install thx.semver
           haxelib install jsonpatch --skip-dependencies
           haxelib install jsonpath --skip-dependencies
-          echo "haxelibs installed:"
           haxelib list
-          echo "Running Haxe analyzer..."
-          haxe -cp ./actions -D analyzer-optimize -main Main --interp
 
       - name: Building iOS (release)
         run: |
           set -euxo pipefail
-          # lime build generates xcodeproj + compiles Haxe; signing failure is expected,
-          # the compiled .app remains for us to ad-hoc re-sign
           haxelib run lime build ios -nosign --app-version="4.0.0-${{ github.run_id}}" 2>&1 | tail -25
-          # Find compiled app (lime writes to export/release/ios/build/Release-iphoneos/)
           APP_PATH=$(find export -name "*.app" -type d | head -1)
           if [ -z "$APP_PATH" ]; then
             echo "=== No .app produced. Listing export: ==="
@@ -199,8 +148,7 @@ jobs:
             exit 1
           fi
           echo "APP_PATH=$APP_PATH"
-          # Ad-hoc re-sign so the IPA is installable/re-signable via SideStore
-          codesign --force --sign - "$APP_PATH" || echo 'codesign adhoc failed (expected if already unsigned)'
+          codesign --force --sign - "$APP_PATH" || echo 'codesign adhoc failed (expected)'
 
       - name: Package IPA (unsigned)
         run: |
@@ -213,25 +161,14 @@ jobs:
           echo "APP_DIR=$APP_DIR"
           mkdir -p Payload
           cp -r "$APP_DIR" "Payload/${APP_NAME}.app"
-          # Sign with ad-hoc identity so the IPA is re-signable by SideStore
           codesign --force --sign - "Payload/${APP_NAME}.app" || true
-          zip -r "PsychEngine-${{ matrix.build_type }}.ipa" Payload
+          zip -r "PsychEngine-release.ipa" Payload
           rm -rf Payload
           ls -lh *.ipa
 
-      - name: Upload iOS Artifact (${{ matrix.build_type }})
+      - name: Upload iOS Artifact (release)
         uses: actions/upload-artifact@main
         with:
-          name: iosBuild-${{ matrix.build_type }}
-          path: PsychEngine-${{ matrix.build_type }}.ipa
+          name: iosBuild-release
+          path: PsychEngine-release.ipa
           if-no-files-found: error
-
-      - name: Save Cache
-        uses: actions/cache@main
-        with:
-          # Saving cache for future iOS builds
-          key: cache-build-ios-${{ matrix.build_type }}-${{ hashFiles('**/haxelib.json') }}
-          path: |
-            .haxelib/
-            export/${{ matrix.build_type }}/ios/haxe/
-            export/${{ matrix.build_type }}/ios/obj/
