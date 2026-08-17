@@ -65,7 +65,7 @@ jobs:
           echo "Setting up haxelib path..."
           haxelib setup ~/haxelib
           # Install all deps explicitly (avoid hmm format issues)
-          haxelib install lime 7.9.0
+          haxelib install lime 8.2.3
           haxelib install openfl 9.1.0
           haxelib install flixel 4.11.0
           haxelib install hscript
@@ -161,7 +161,7 @@ jobs:
           echo "Setting up haxelib path..."
           haxelib setup ~/haxelib
           # Install all deps explicitly (avoid hmm format issues)
-          haxelib install lime 7.9.0
+          haxelib install lime 8.2.3
           haxelib install openfl 9.1.0
           haxelib install flixel 4.11.0
           haxelib install hscript
@@ -182,7 +182,7 @@ jobs:
           set -euxo pipefail
           # lime build generates xcodeproj + compiles Haxe; signing failure is expected,
           # the compiled .app remains for us to ad-hoc re-sign
-          haxelib run lime build ios -Dios.archs=arm64 --app-version="4.0.0-${{ github.run_id}}" 2>&1 | tail -25 || true
+          haxelib run lime build ios -nosign --app-version="4.0.0-${{ github.run_id}}" 2>&1 | tail -25
           # Find compiled app (lime writes to export/release/ios/build/Release-iphoneos/)
           APP_PATH=$(find export -name "*.app" -type d | head -1)
           if [ -z "$APP_PATH" ]; then
