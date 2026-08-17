@@ -61,11 +61,20 @@ jobs:
           set -euxo pipefail # Exit immediately if a command exits with a non-zero status.
           echo "Setting up haxelib path..."
           haxelib setup ~/haxelib
-          echo "Haxelib setup complete. Listing haxelib paths:"
-          haxelib path
-          echo "Installing hxcpp..."
-          haxelib install hxcpp # Removed > /dev/null to see output
-          echo "hxcpp installed. Listing installed haxelibs:"
+          # Install all deps explicitly (avoid hmm format issues)
+          haxelib install lime 7.9.0
+          haxelib install openfl 9.1.0
+          haxelib install flixel 4.11.0
+          haxelib install hscript
+          haxelib install flixel-addons 2.11.0
+          haxelib install flixel-ui
+          haxelib install hxcpp
+          haxelib install polymod
+          haxelib git linc_luajit https://github.com/Sirox228/linc_luajit.git master
+          haxelib git hxCodec https://github.com/JonnycatMeow/hxCodec-old.git main
+          haxelib git hxShaders https://github.com/JonnycatMeow/hxShaders.git main
+          haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc.git master
+          echo "haxelibs installed:"
           haxelib list
           echo "Running Haxe analyzer..."
           haxe -cp ./actions -D analyzer-optimize -main Main --interp
@@ -145,10 +154,18 @@ jobs:
           set -euxo pipefail # Exit immediately if a command exits with a non-zero status.
           echo "Setting up haxelib path..."
           haxelib setup ~/haxelib
-          echo "Installing hmm..."
-          haxelib install hmm
-          echo "Installing all dependencies via hmm (includes polymod)..."
-          haxelib run hmm install
+          # Install all deps explicitly (avoid hmm format issues)
+          haxelib install lime 7.9.0
+          haxelib install openfl 9.1.0
+          haxelib install flixel 4.11.0
+          haxelib install hscript
+          haxelib install flixel-addons 2.11.0
+          haxelib install flixel-ui
+          haxelib install polymod
+          haxelib git linc_luajit https://github.com/Sirox228/linc_luajit.git master
+          haxelib git hxCodec https://github.com/JonnycatMeow/hxCodec-old.git main
+          haxelib git hxShaders https://github.com/JonnycatMeow/hxShaders.git main
+          haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc.git master
           echo "haxelibs installed:"
           haxelib list
           echo "Running Haxe analyzer..."
