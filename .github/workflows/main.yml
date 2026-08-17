@@ -177,16 +177,23 @@ jobs:
           echo "Running Haxe analyzer..."
           haxe -cp ./actions -D analyzer-optimize -main Main --interp
 
-      - name: Building iOS (${{ matrix.build_type }})
+      - name: Building iOS (release)
         run: |
           set -euxo pipefail
-          # Build unsigned device IPA (no Apple signing - SideStore will re-sign)
-          haxelib run lime build ios ${{ matrix.build_type == 'debug' && '-debug' || '' }} \
-            -Dios-buildtype=release \
-            -Dios-entitlements="" \
-            --app-version="4.0.0-${{ github.run_id}}" \
-            -Dios-target=ios -Dios.archs="arm64" -Dios.version=13.0 \
-            --nocert || haxelib run lime build ios ${{ matrix.build_type == 'debug' && '-debug' || '' }} --app-version="4.0.0-${{ github.run_id}}" -Dios.version=13.0
+          # 1) lime generates xcodeproj + compiles Haxe (may fail at signing, that's fine)
+          haxelib run lime build ios --app-version="4.0.0-${{ github.run_id}}" \
+            -Dios.archs="arm64" -Dios.version=13.0 2>&1 | tail -30 || true
+          ls export/release/ios/
+          # 2) Rebuild with signing disabled
+          cd export/release/ios
+          xcodebuild -project PsychEngine.xcodeproj -scheme PsychEngine \
+            -configuration Release -sdk iphoneos \
+            ARCHS=arm64 ONLY_ACTIVE_ARCH=YES \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO \
+            build 2>&1 | tail -30
+          cd ../../..
+          find export -name "*.app" -type d | head -5
 
       - name: Package IPA (unsigned)
         run: |
