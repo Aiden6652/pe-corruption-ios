@@ -77,7 +77,7 @@ jobs:
           haxelib git hxCodec https://github.com/JonnycatMeow/hxCodec-old.git main
           haxelib git hxShaders https://github.com/JonnycatMeow/hxShaders.git main
           haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc.git master
-          haxelib set thx.core 0.42.0
+          haxelib install thx.core 0.42.0
           echo "haxelibs installed:"
           haxelib list
           echo "Running Haxe analyzer..."
@@ -173,7 +173,7 @@ jobs:
           haxelib git hxCodec https://github.com/JonnycatMeow/hxCodec-old.git main
           haxelib git hxShaders https://github.com/JonnycatMeow/hxShaders.git main
           haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc.git master
-          haxelib set thx.core 0.42.0
+          haxelib install thx.core 0.42.0
           echo "haxelibs installed:"
           haxelib list
           echo "Running Haxe analyzer..."
