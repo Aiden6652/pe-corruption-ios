@@ -18,8 +18,13 @@ export/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
-!.vscode/extensions.jsonassets/
+!.vscode/extensions.json
 
-# Game assets downloaded from upstream repo at CI time
-assets/
-!assets/shared/images/VS_
+# Game assets downloaded from upstream repo at CI time.
+# Keep the V-Slice UI textures we ship in this repo (referenced by Note/StrumNote).
+assets/*
+!assets/shared/
+assets/shared/*
+!assets/shared/images/
+assets/shared/images/*
+!assets/shared/images/VS_*
