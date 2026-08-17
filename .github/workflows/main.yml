@@ -59,10 +59,10 @@ jobs:
           haxelib git hxCodec https://github.com/JonnycatMeow/hxCodec-old.git main
           haxelib git hxShaders https://github.com/JonnycatMeow/hxShaders.git main
           haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc.git master
-          haxelib install thx.core 0.42.0
           haxelib install thx.semver
           haxelib install jsonpatch --skip-dependencies
           haxelib install jsonpath --skip-dependencies
+          haxelib install thx.core 0.42.0
           haxelib list
 
       - name: Configure Android
@@ -131,10 +131,10 @@ jobs:
           haxelib git hxCodec https://github.com/JonnycatMeow/hxCodec-old.git main
           haxelib git hxShaders https://github.com/JonnycatMeow/hxShaders.git main
           haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc.git master
-          haxelib install thx.core 0.42.0
           haxelib install thx.semver
           haxelib install jsonpatch --skip-dependencies
           haxelib install jsonpath --skip-dependencies
+          haxelib install thx.core 0.42.0
           haxelib list
 
       - name: Building iOS (release)
