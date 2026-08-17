@@ -4409,19 +4409,20 @@ class PlayState extends MusicBeatState
 	}
 
 	#if mobile
-	// V-Slice style touch: tap on the note lanes to hit notes
+	// V-Slice (FunkinCrew official) style touch: screen split into 4 equal lanes (FourLanes scheme)
+	// Touch position determines lane -> direction. Matches official FunkinHitbox logic.
 	private var vSliceTouchActive:Array<Bool> = [false, false, false, false];
 	private function updateVSliceTouch():Void
 	{
 		if (!startedCountdown || paused || cpuControlled || !generatedMusic || inCutscene || endingSong) return;
 
-		// check each active touch
+		// FourLanes: each lane is FlxG.width/4 wide, full height
+		// Lane i -> direction: 0=LEFT, 1=DOWN, 2=UP, 3=RIGHT (NoteDirection enum order)
 		var anyDown:Array<Bool> = [false, false, false, false];
-		var lane:Int = -1;
 		for (touch in FlxG.touches.list)
 		{
 			if (touch == null) continue;
-			lane = getVSliceLaneFromTouch(touch);
+			var lane:Int = getVSliceLaneFromTouch(touch);
 			if (lane > -1) anyDown[lane] = true;
 		}
 
@@ -4443,24 +4444,11 @@ class PlayState extends MusicBeatState
 	private function getVSliceLaneFromTouch(touch:flixel.input.touch.FlxTouch):Int
 	{
 		var touchX:Float = touch.screenX;
-		var closest:Int = -1;
-		var closestDist:Float = 999999;
-		for (i in 0...playerStrums.length)
-		{
-			var strum:StrumNote = playerStrums.members[i];
-			if (strum == null) continue;
-			// Convert strum world pos to screen pos using camHUD
-			var screenX:Float = camHUD.x + strum.x * camHUD.zoom;
-			var dist:Float = Math.abs(touchX - screenX);
-			if (dist < closestDist)
-			{
-				closestDist = dist;
-				closest = i;
-			}
-		}
-		// Only register if touch is reasonably close to a lane (within 2 note widths)
-		if (closest > -1 && closestDist < 250) return closest;
-		return -1;
+		// Official FourLanes: divide screen width into 4 equal zones
+		var laneWidth:Float = FlxG.width / 4;
+		var lane:Int = Math.floor(touchX / laneWidth);
+		if (lane < 0 || lane > 3) return -1;
+		return lane;
 	}
 	#end
 
