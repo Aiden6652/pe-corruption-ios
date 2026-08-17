@@ -181,6 +181,7 @@ jobs:
         run: |
           set -euxo pipefail
           # 1) Generate xcodeproj only (no build, no signing from lime)
+          haxelib install lime-samples
           haxelib run lime create ios -Dios.archs="arm64" --app-version="4.0.0-${{ github.run_id}}" 2>&1 | tail -15
           ls export/release/ios/
           # 2) Build with xcodebuild, signing fully disabled
