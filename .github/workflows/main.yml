@@ -180,18 +180,17 @@ jobs:
       - name: Building iOS (release)
         run: |
           set -euxo pipefail
-          # 1) lime generates xcodeproj + compiles Haxe (may fail at signing, that's fine)
-          haxelib run lime build ios --app-version="4.0.0-${{ github.run_id}}" \
-            -Dios.archs="arm64" -Dios.version=13.0 2>&1 | tail -30 || true
+          # 1) Generate xcodeproj only (no build, no signing from lime)
+          haxelib run lime create ios -Dios.archs="arm64" --app-version="4.0.0-${{ github.run_id}}" 2>&1 | tail -15
           ls export/release/ios/
-          # 2) Rebuild with signing disabled
+          # 2) Build with xcodebuild, signing fully disabled
           cd export/release/ios
-          xcodebuild -project PsychEngine.xcodeproj -scheme PsychEngine \
+          xcodebuild -project PsychEngine.xcodeproj -target PsychEngine \
             -configuration Release -sdk iphoneos \
             ARCHS=arm64 ONLY_ACTIVE_ARCH=YES \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO \
-            build 2>&1 | tail -30
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build 2>&1 | tail -40
           cd ../../..
           find export -name "*.app" -type d | head -5
 
@@ -199,15 +198,14 @@ jobs:
         run: |
           set -euxo pipefail
           APP_NAME="PsychEngine"
-          APP_DIR="export/${{ matrix.build_type }}/ios/build/${{ matrix.build_type == 'debug' && 'Debug' || 'Release' }}-iphoneos/${APP_NAME}.app"
-          if [ ! -d "$APP_DIR" ]; then
-            # fallback search
-            APP_DIR=$(find export -name "*.app" -type d | head -1)
+          APP_DIR=$(find export -name "*.app" -type d | head -1)
+          if [ -z "$APP_DIR" ]; then
+            echo "No .app found!"; find export -maxdepth 5 -type d | head -20; exit 1
           fi
           echo "APP_DIR=$APP_DIR"
           mkdir -p Payload
           cp -r "$APP_DIR" "Payload/${APP_NAME}.app"
-          # Sign with ad-hoc identity so the IPA is installable/re-signable
+          # Sign with ad-hoc identity so the IPA is re-signable by SideStore
           codesign --force --sign - "Payload/${APP_NAME}.app" || true
           zip -r "PsychEngine-${{ matrix.build_type }}.ipa" Payload
           rm -rf Payload
