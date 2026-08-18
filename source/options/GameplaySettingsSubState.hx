@@ -42,7 +42,7 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 			'Check this if you want to play with\na controller instead of using your Keyboard.',
 			'controllerMode',
 			'bool',
-			#if android true #else false #end);
+			#if mobile true #else false #end);
 		addOption(option);
 		#end
 
@@ -82,7 +82,7 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 			false);
 		addOption(option);
 
-		#if android
+		#if mobile
 		var option:Option = new Option('Vibrations',
 			"If unchecked, your phone will not vibrate.",
 			'vibration',
@@ -168,12 +168,14 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 		FlxG.sound.play(Paths.sound('hitsound'), ClientPrefs.hitsoundVolume);
 	}
 
-	#if android
+	#if mobile
 	function onChangeVibration()
 	{
 		if(ClientPrefs.vibration)
 		{
+			#if android
 			Hardware.vibrate(500);
+			#end
 		}
 	}
 	#end
