@@ -19,7 +19,12 @@ jobs:
           set -euxo pipefail
           mkdir -p $GITHUB_WORKSPACE/assets
           rm -rf /tmp/upstream
-          git clone --depth 1 --filter=blob:none --sparse https://github.com/softbf395/psych-engine-0.6.3-iOS-port.git /tmp/upstream
+          for i in 1 2 3 4 5; do
+            git clone --depth 1 --filter=blob:none --sparse https://github.com/softbf395/psych-engine-0.6.3-iOS-port.git /tmp/upstream && break
+            echo "upstream clone retry $i"
+            rm -rf /tmp/upstream
+            sleep 15
+          done
           cd /tmp/upstream
           git sparse-checkout set assets
           cp -r assets/. $GITHUB_WORKSPACE/assets/
@@ -106,7 +111,12 @@ jobs:
           set -euxo pipefail
           mkdir -p $GITHUB_WORKSPACE/assets
           rm -rf /tmp/upstream
-          git clone --depth 1 --filter=blob:none --sparse https://github.com/softbf395/psych-engine-0.6.3-iOS-port.git /tmp/upstream
+          for i in 1 2 3 4 5; do
+            git clone --depth 1 --filter=blob:none --sparse https://github.com/softbf395/psych-engine-0.6.3-iOS-port.git /tmp/upstream && break
+            echo "upstream clone retry $i"
+            rm -rf /tmp/upstream
+            sleep 15
+          done
           cd /tmp/upstream
           git sparse-checkout set assets
           cp -r assets/. $GITHUB_WORKSPACE/assets/
