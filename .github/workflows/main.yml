@@ -64,10 +64,8 @@ jobs:
           haxelib install thx.semver
           haxelib install jsonpatch --skip-dependencies
           haxelib install jsonpath --skip-dependencies
-          haxelib install thx.core 0.42.0
-          # Patch thx.core 0.42.0 Options.hx for Haxe 4.3.6 (old version-check syntax)
-          TC_FILE=$(find ~/haxelib -name Options.hx -path "*thx*" 2>/dev/null | head -1)
-          [ -n "$TC_FILE" ] && perl -pi -e 's/#if \(\(haxe <= 3\.2\) && java\) \@:generic \#end/#if false \@:generic \#end/' "$TC_FILE" || echo 'thx.core patch skipped'
+          haxelib install thx.core 0.44.0
+          python3 patch_jsonpath.py
           haxelib list
 
       - name: Configure Android
@@ -140,10 +138,8 @@ jobs:
           haxelib install thx.semver
           haxelib install jsonpatch --skip-dependencies
           haxelib install jsonpath --skip-dependencies
-          haxelib install thx.core 0.42.0
-          # Patch thx.core 0.42.0 Options.hx for Haxe 4.3.6 (old version-check syntax)
-          TC_FILE=$(find ~/haxelib -name Options.hx -path "*thx*" 2>/dev/null | head -1)
-          [ -n "$TC_FILE" ] && perl -pi -e 's/#if \(\(haxe <= 3\.2\) && java\) \@:generic \#end/#if false \@:generic \#end/' "$TC_FILE" || echo 'thx.core patch skipped'
+          haxelib install thx.core 0.44.0
+          python3 patch_jsonpath.py
           haxelib list
 
       - name: Building iOS (release)
