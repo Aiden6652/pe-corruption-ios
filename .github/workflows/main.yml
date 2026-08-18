@@ -4,6 +4,7 @@ on: [push, workflow_dispatch]
 
 jobs:
   androidBuild:
+    if: false  # 暂时禁用, 专注 iOS
     runs-on: ubuntu-latest
     strategy:
       matrix:
