@@ -192,6 +192,7 @@ class StoryMenuState extends MusicBeatState
         #if android
         addVirtualPad(FULL, A_B_X_Y);
         addPadCamera();
+        #end
         
 
 		super.create();
