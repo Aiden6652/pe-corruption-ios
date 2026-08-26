@@ -17,8 +17,9 @@ class ClientPrefs {
 	public static var toporbottom:String = "Bottom";
 	public static var spacePosition:String = "Left";
 	public static var deleteZip:Bool = true;
-	public static var hitBoxShift:Bool = true;
-	public static var hitBoxSpace:Bool = true;
+	// V-Slice style: pure 4-arrow hitbox (no extra space/shift buttons)
+	public static var hitBoxShift:Bool = false;
+	public static var hitBoxSpace:Bool = false;
 	public static var toolazytocodesomethinginsohereisatrashway:Bool = true;
 	public static var lowQuality:Bool = false;
 	public static var shaders:Bool = true;

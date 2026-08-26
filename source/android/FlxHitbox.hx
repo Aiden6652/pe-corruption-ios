@@ -142,10 +142,11 @@ class FlxHitbox extends FlxSpriteGroup {
 		var button = new FlxButton(x, y);
 		button.loadGraphic(FlxGraphic.fromFrame(getFrames(image).getByName(frames)));
 		button.antialiasing = orgAntialiasing;
-		button.alpha = 0;// sorry but I can't hard lock the hitbox alpha
-		button.onDown.callback = function (){FlxTween.num(0, ClientPrefs.hitBoxTrans, 0.075, {ease:FlxEase.circInOut}, function(alpha:Float){ button.alpha = alpha;});};
-		button.onUp.callback = function (){FlxTween.num(ClientPrefs.hitBoxTrans, 0, 0.1, {ease:FlxEase.circInOut}, function(alpha:Float){ button.alpha = alpha;});}
-		button.onOut.callback = function (){FlxTween.num(button.alpha, 0, 0.2, {ease:FlxEase.circInOut}, function(alpha:Float){ button.alpha = alpha;});}
+		// V-Slice style: hitbox buttons always visible at a steady alpha, brighten on press
+		button.alpha = 0.55;
+		button.onDown.callback = function (){FlxTween.num(button.alpha, 0.95, 0.06, {ease:FlxEase.circInOut}, function(alpha:Float){ button.alpha = alpha;});};
+		button.onUp.callback = function (){FlxTween.num(button.alpha, 0.55, 0.12, {ease:FlxEase.circInOut}, function(alpha:Float){ button.alpha = alpha;});}
+		button.onOut.callback = function (){FlxTween.num(button.alpha, 0.55, 0.2, {ease:FlxEase.circInOut}, function(alpha:Float){ button.alpha = alpha;});}
 		return button;
 	}
 

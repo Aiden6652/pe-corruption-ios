@@ -19,7 +19,7 @@ class Config {
 	public function getcontrolmode():Int {
 		if (save.data.buttonsmode != null) 
 			return save.data.buttonsmode[0];
-		return 0;
+		return 4; // default to HITBOX (V-Slice style bottom 4-arrow layout)
 	}
 
 	public function setcontrolmode(mode:Int = 0):Int {
