@@ -1599,7 +1599,7 @@ class PlayState extends MusicBeatState
 			}
 		});
 		add(video);
-		new FlxTimer().wait(0.001, function():Void
+		new FlxTimer().start(0.001, function(t:FlxTimer):Void
 		{
 			video.play();
 		});
