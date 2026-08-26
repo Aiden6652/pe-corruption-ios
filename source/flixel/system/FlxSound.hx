@@ -21,7 +21,7 @@ import openfl.utils.ByteArray;
 #end
 #if sys
 import sys.io.File;
-import sys.io.FileSystem;
+import sys.FileSystem;
 #end
 #if (openfl >= "8.0.0")
 import openfl.utils.AssetType;
