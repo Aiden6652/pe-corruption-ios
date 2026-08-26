@@ -4,6 +4,7 @@ import flixel.graphics.FlxGraphic;
 import flixel.FlxG;
 import flixel.FlxGame;
 import flixel.FlxState;
+import flixel.system.scaleModes.RatioScaleMode;
 import openfl.Assets;
 import openfl.Lib;
 import openfl.display.FPS;
@@ -96,6 +97,13 @@ class Main extends Sprite
 	
 		ClientPrefs.loadDefaultKeys();
 		addChild(new FlxGame(game.width, game.height, game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate, game.skipSplash, game.startFullscreen));
+
+		// flixel 5.0.0 removed the zoom arg from FlxGame; default scaleMode is
+		// RatioScaleMode(false) = letterbox (keeps black bars). Match the old
+		// zoom behavior: fill the whole screen, cropping the overflow.
+		#if (flixel >= "5.0.0")
+		FlxG.scaleMode = new RatioScaleMode(true);
+		#end
 
 		fpsVar = new FPS(10, 3, 0xFFFFFF);
 		addChild(fpsVar);
