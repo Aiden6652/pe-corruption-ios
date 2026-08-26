@@ -16,6 +16,12 @@ import flixel.util.FlxStringUtil;
 import openfl.Assets;
 #if flash11
 import flash.utils.ByteArray;
+#else
+import openfl.utils.ByteArray;
+#end
+#if sys
+import sys.io.File;
+import sys.io.FileSystem;
 #end
 #if (openfl >= "8.0.0")
 import openfl.utils.AssetType;
@@ -356,6 +362,16 @@ class FlxSound extends FlxBasic
 		{
 			if (Assets.exists(EmbeddedSound, AssetType.SOUND) || Assets.exists(EmbeddedSound, AssetType.MUSIC))
 				_sound = Assets.getSound(EmbeddedSound);
+			#if sys
+			// iOS/mobile: mod audio lives in Documents (outside bundle assets).
+			// Assets.exists() only sees the app bundle, so load the file bytes directly.
+			else if (FileSystem.exists(EmbeddedSound))
+			{
+				_sound = new Sound();
+				var bytes:ByteArray = ByteArray.fromBytes(File.getBytes(EmbeddedSound));
+				_sound.loadCompressedDataFromByteArray(bytes, bytes.length);
+			}
+			#end
 			else
 				FlxG.log.error('Could not find a Sound asset with an ID of \'$EmbeddedSound\'.');
 		}
@@ -378,6 +394,21 @@ class FlxSound extends FlxBasic
 	public function loadStream(SoundURL:String, Looped:Bool = false, AutoDestroy:Bool = false, ?OnComplete:Void->Void, ?OnLoad:Void->Void):FlxSound
 	{
 		cleanup(true);
+
+		#if sys
+		// iOS/mobile: mod music lives in Documents, outside bundle assets.
+		// URLRequest cannot load those local paths, so load the file bytes directly.
+		if (FileSystem.exists(SoundURL))
+		{
+			_sound = new Sound();
+			var bytes:ByteArray = ByteArray.fromBytes(File.getBytes(SoundURL));
+			_sound.loadCompressedDataFromByteArray(bytes, bytes.length);
+			_length = _sound.length;
+			if (OnLoad != null)
+				OnLoad();
+			return init(Looped, AutoDestroy, OnComplete);
+		}
+		#end
 
 		_sound = new Sound();
 		_sound.addEventListener(Event.ID3, gotID3);
