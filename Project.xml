@@ -47,7 +47,7 @@
 	<define name="MODS_ALLOWED" if="desktop || android || ios" />
 	<define name="LUA_ALLOWED" if="desktop || android || ios" />
 	<define name="ACHIEVEMENTS_ALLOWED" />
-	<define name="VIDEOS_ALLOWED" if="web || windows || (mobile && !ios)" unless="32bits"/>
+	<define name="VIDEOS_ALLOWED" if="web || windows || mobile" unless="32bits"/>
 	<define name="PSYCH_WATERMARKS"/> <!-- DELETE THIS TO REMOVE WATERMARKS/DEV NAMES ON TITLE SCREEN -->
 	<define name="TITLE_SCREEN_EASTER_EGG" if="officialBuild"/> <!-- DELETE THE if="officialBuild" for enabling this on an unofficial build -->
 	<define name="CRASH_HANDLER" if="desktop release || android" />
@@ -110,7 +110,7 @@
 	<!--In case you want to use the ui package-->
 	<haxelib name="flixel-ui" />
 	<haxelib name="linc_luajit" if="LUA_ALLOWED"/>
-	<haxelib name="hxCodec" if="VIDEOS_ALLOWED"/> 
+	<haxelib name="hxvlc" if="VIDEOS_ALLOWED"/>
         <haxelib name="extension-androidtools" if="android"/>
 	<haxelib name="faxe" if='switch'/>
 	<haxelib name="polymod" />
@@ -148,8 +148,7 @@
 	<!--Disable the Flixel core focus lost screen-->
 	<haxedef name="FLX_NO_FOCUS_LOST_SCREEN" />
 	
-	<!-- Show debug traces for hxCodec -->
-	<haxedef name="HXC_DEBUG_TRACE" if="debug" />
+	<!-- hxvlc has its own logging; HXC_DEBUG_TRACE (hxCodec-only) removed -->
 	
 	<!--Disable the Flixel core debugger. Automatically gets set whenever you compile in release mode!-->
 	<haxedef name="FLX_NO_DEBUG" unless="debug" />

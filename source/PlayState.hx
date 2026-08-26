@@ -74,7 +74,7 @@ import sys.io.File;
 #end
 
 #if VIDEOS_ALLOWED
-import hxcodec.VideoHandler as MP4Handler;
+import hxvlc.flixel.FlxVideoSprite;
 #end
 
 using StringTools;
@@ -1576,13 +1576,33 @@ class PlayState extends MusicBeatState
 			return;
 		}
 
-		var video:MP4Handler = new MP4Handler();
-		video.playVideo(filepath);
-		video.finishCallback = function()
+		var video:FlxVideoSprite = new FlxVideoSprite(0, 0);
+		video.precache(filepath);
+		video.bitmap.onEndReached.add(function():Void
 		{
+			if (video != null)
+			{
+				remove(video);
+				video.destroy();
+				video = null;
+			}
 			startAndEnd();
-			return;
-		}
+		});
+		video.bitmap.onFormatSetup.add(function():Void
+		{
+			if (video.bitmap != null && video.bitmap.bitmapData != null)
+			{
+				final scale:Float = Math.min(FlxG.width / video.bitmap.bitmapData.width, FlxG.height / video.bitmap.bitmapData.height);
+				video.setGraphicSize(Std.int(video.bitmap.bitmapData.width * scale), Std.int(video.bitmap.bitmapData.height * scale));
+				video.updateHitbox();
+				video.screenCenter();
+			}
+		});
+		add(video);
+		new FlxTimer().wait(0.001, function():Void
+		{
+			video.play();
+		});
 		#else
 		FlxG.log.warn('Platform not supported!');
 		startAndEnd();
