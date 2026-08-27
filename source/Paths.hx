@@ -148,8 +148,12 @@ class Paths
 
 	inline static function getLibraryPathForce(file:String, library:String)
 	{
-		var returnPath = '$library:assets/$library/$file';
-		return returnPath;
+		// iOS/OpenFL9: 'library:assets/...' prefixed ids do NOT resolve on device
+		// (OpenFlAssets.exists returns false), so getPath fell back to the flat
+		// 'assets/...' id and every shared-library asset (VS_strumline, healthBar,
+		// noteSplashes, stagefront...) came back missing -> null graphic -> crash.
+		// Manifest ids are flat full paths, so return those directly.
+		return 'assets/$library/$file';
 	}
 
 	inline public static function getPreloadPath(file:String = '')
