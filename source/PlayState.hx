@@ -1596,7 +1596,8 @@ class PlayState extends MusicBeatState
 			spr.setGraphicSize(vidWidth, vidHeight);
 			spr.updateHitbox();
 		}
-		if (spr.bitmap != null) spr.bitmap.loop = loop;
+		var bm:Dynamic = spr.bitmap;
+		if (bm != null) bm.loop = loop;
 		var path:String = Paths.video(videoFile);
 		#if sys
 		if (FileSystem.exists(path))
@@ -1625,7 +1626,10 @@ class PlayState extends MusicBeatState
 	{
 		var spr:Dynamic = videoSprites.get(name);
 		if (spr == null) return;
-		if (loop != null && spr.bitmap != null) spr.bitmap.loop = loop;
+		if (loop != null) {
+			var bm2:Dynamic = spr.bitmap;
+			if (bm2 != null) bm2.loop = loop;
+		}
 		if (Std.isOfType(spr, FlxVideoSprite)) spr.play();
 	}
 
@@ -1659,7 +1663,10 @@ class PlayState extends MusicBeatState
 	{
 		var spr:Dynamic = videoSprites.get(name);
 		if (spr == null) return false;
-		if (Std.isOfType(spr, FlxVideoSprite) && spr.bitmap != null) return spr.bitmap.playing;
+		if (Std.isOfType(spr, FlxVideoSprite)) {
+			var bm3:Dynamic = spr.bitmap;
+			if (bm3 != null) return bm3.playing;
+		}
 		return false;
 	}
 	#end
@@ -1693,9 +1700,10 @@ class PlayState extends MusicBeatState
 
 		var video:FlxVideoSprite = new FlxVideoSprite(0, 0);
 		video.precache(filepath);
-		if (video.bitmap != null)
+		var vbm:Dynamic = video.bitmap;
+		if (vbm != null)
 		{
-			video.bitmap.onEndReached.add(function():Void
+			vbm.onEndReached.add(function():Void
 			{
 				if (video != null)
 				{
@@ -1705,12 +1713,13 @@ class PlayState extends MusicBeatState
 				}
 				startAndEnd();
 			});
-			video.bitmap.onFormatSetup.add(function():Void
+			vbm.onFormatSetup.add(function():Void
 			{
-				if (video.bitmap != null && video.bitmap.bitmapData != null)
+				var bb:Dynamic = video.bitmap;
+				if (bb != null && bb.bitmapData != null)
 				{
-					final scale:Float = Math.min(FlxG.width / video.bitmap.bitmapData.width, FlxG.height / video.bitmap.bitmapData.height);
-					video.setGraphicSize(Std.int(video.bitmap.bitmapData.width * scale), Std.int(video.bitmap.bitmapData.height * scale));
+					final scale:Float = Math.min(FlxG.width / bb.bitmapData.width, FlxG.height / bb.bitmapData.height);
+					video.setGraphicSize(Std.int(bb.bitmapData.width * scale), Std.int(bb.bitmapData.height * scale));
 					video.updateHitbox();
 					video.screenCenter();
 				}
