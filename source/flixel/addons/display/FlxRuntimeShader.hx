@@ -27,6 +27,16 @@ using StringTools;
  */
 class FlxRuntimeShader extends FlxShader
 {
+	/**
+	 * GLSL version used when compiling this shader.
+	 * 120 == GLSL ES 1.0 / WebGL1. This is the GLSL-120-equivalent profile that the
+	 * desktop Corruption `.frag` files are written in (gl_FragColor / varying / texture2D),
+	 * and it is the ONLY profile that actually compiles on iOS (OpenGL ES). It is forced
+	 * here so iPad never accidentally compiles these shaders as GLSL ES 3.0 (#version 300 es),
+	 * which would reject `gl_FragColor`/`varying` and break every effect.
+	 */
+	public var glslVersion:Int = 120;
+
 	// These variables got copied from openfl.display.GraphicsShader
 	// and from flixel.graphics.tile.FlxGraphicsShader,
 	// and probably won't change ever.
@@ -197,8 +207,10 @@ class FlxRuntimeShader extends FlxShader
 	 * @param vertexSource The vertex shader source.
 	 * Note you also need to `initialize()` the shader MANUALLY! It can't be done automatically.
 	 */
-	public function new(fragmentSource:String = null, vertexSource:String = null):Void
+	public function new(fragmentSource:String = null, vertexSource:String = null, ?glslVersion:Int = 120):Void
 	{
+		this.glslVersion = glslVersion;
+
 		if (fragmentSource != null)
 		{
 			trace('Loading fragment source from argument...');
@@ -294,7 +306,10 @@ class FlxRuntimeShader extends FlxShader
 			}
 			else
 			{
-				program = __context.createProgram(GLSL);
+				// GLSL 120 (desktop Corruption) == GLSL ES 1.0 on iOS. The 120-style .frag
+			// files use gl_FragColor / varying / texture2D, so we ALWAYS compile as GLSL ES 1.0.
+			// (iOS GPUs cannot run #version 300 es and would reject that syntax.)
+			program = __context.createProgram(GLSL);
 
 				@:privateAccess
 				program.__glProgram = __createGLProgram(vertex, fragment);

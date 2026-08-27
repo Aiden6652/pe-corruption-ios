@@ -293,7 +293,7 @@ class FunkinLua {
 
 			if(leObj != null) {
 				var arr:Array<String> = PlayState.instance.runtimeShaders.get(shader);
-				leObj.shader = new FlxRuntimeShader(arr[0], arr[1]);
+				leObj.shader = new FlxRuntimeShader(arr[0], arr[1], 120);
 				return true;
 			}
 			#else
@@ -2864,7 +2864,7 @@ class FunkinLua {
 			return true;
 		}
 
-		var foldersToCheck:Array<String> = [Paths.mods('shaders/'), SUtil.getPath() + 'assets/shaders/'];
+		var foldersToCheck:Array<String> = [Paths.mods('shaders/')];
 		if(Paths.currentModDirectory != null && Paths.currentModDirectory.length > 0)
 			foldersToCheck.insert(0, Paths.mods(Paths.currentModDirectory + '/shaders/'));
 
