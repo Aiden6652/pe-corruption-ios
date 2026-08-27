@@ -35,3 +35,10 @@ assets/shared/images/*
 mods-corruption-main/
 # CI build output (signed IPA + inspection tree) is produced by the workflow.
 build_output/
+
+# CI artifact downloads (never commit)
+iosBuild-release.zip
+*.ipa
+
+# local helper scripts (never commit - contain tokens)
+_*.py

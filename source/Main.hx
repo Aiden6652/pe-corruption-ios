@@ -32,6 +32,7 @@ import sys.io.Process;
 import sys.FileSystem;
 import sys.io.File;
 import openfl.text.TextField;
+import openfl.text.TextFormat;
 #end
 
 using StringTools;
@@ -167,7 +168,7 @@ class Main extends Sprite
 		_bootText.height = Lib.current.stage.stageHeight;
 		_bootText.text = "首次启动：正在解压 Corruption 资源...\n(This only happens once, please wait a few minutes)";
 		_bootText.textColor = 0xffffff;
-		_bootText.size = 28;
+		_bootText.defaultTextFormat = new TextFormat(null, 28, 0xffffff);
 		_bootText.multiline = true;
 		Lib.current.addChild(_bootText);
 
