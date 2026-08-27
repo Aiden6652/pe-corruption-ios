@@ -265,8 +265,10 @@ jobs:
       - name: Building iOS (release)
         run: |
           set -euxo pipefail
+          set +e
           haxelib run lime build ios -nosign --app-version="4.0.0-${{ github.run_id}}" > _build.log 2>&1
           BUILD_RC=$?
+          set -e
           tail -60 _build.log
           if [ $BUILD_RC -ne 0 ]; then
             echo "## BUILD FAILED (exit $BUILD_RC)" >> $GITHUB_STEP_SUMMARY
