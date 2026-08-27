@@ -126,6 +126,21 @@ class Paths
 
 		if (currentLevel != null)
 		{
+			#if ios
+			// iOS: OpenFL manifest ids for library="shared" assets never resolve
+			// (both 'shared:assets/...' and 'assets/shared/...' fail exists()).
+			// The bundle is a real directory on disk, so use physical paths with
+			// FileSystem - this is the only reliable way to reach shared assets.
+			var levelPath:String = SUtil.getPath() + 'assets/$currentLevel/$file';
+			if (FileSystem.exists(levelPath))
+				return levelPath;
+			if (currentLevel != 'shared')
+			{
+				levelPath = SUtil.getPath() + 'assets/shared/$file';
+				if (FileSystem.exists(levelPath))
+					return levelPath;
+			}
+			#else
 			var levelPath:String = '';
 			if(currentLevel != 'shared') {
 				levelPath = getLibraryPathForce(file, currentLevel);
@@ -136,6 +151,7 @@ class Paths
 			levelPath = getLibraryPathForce(file, "shared");
 			if (OpenFlAssets.exists(levelPath, type))
 				return levelPath;
+			#end
 		}
 
 		return getPreloadPath(file);
@@ -148,11 +164,6 @@ class Paths
 
 	inline static function getLibraryPathForce(file:String, library:String)
 	{
-		// iOS/OpenFL9: 'library:assets/...' prefixed ids do NOT resolve on device
-		// (OpenFlAssets.exists returns false), so getPath fell back to the flat
-		// 'assets/...' id and every shared-library asset (VS_strumline, healthBar,
-		// noteSplashes, stagefront...) came back missing -> null graphic -> crash.
-		// Manifest ids are flat full paths, so return those directly.
 		return 'assets/$library/$file';
 	}
 
@@ -357,7 +368,13 @@ class Paths
 
 		var path = getPath('images/$key.png', IMAGE, library);
 		//trace(path);
+		#if ios
+		// iOS: path may be a physical bundle path (shared assets) - FileSystem
+		// check covers it; OpenFlAssets.exists also accepts flat ids for the rest.
+		if (FileSystem.exists(path) || OpenFlAssets.exists(path, IMAGE)) {
+		#else
 		if (OpenFlAssets.exists(path, IMAGE)) {
+		#end
 			if(!currentTrackedAssets.exists(path)) {
 				var newGraphic:FlxGraphic = FlxG.bitmap.add(path, false, path);
 				newGraphic.persist = true;
