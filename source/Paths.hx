@@ -362,9 +362,16 @@ class Paths
 			localTrackedAssets.push(path);
 			return currentTrackedAssets.get(path);
 		}
-		trace('oh no its returning null NOOOO');
+		// Only warn once per missing asset (otherwise every-frame retries flood the log)
+		if (!missingImageWarned.exists(path))
+		{
+			missingImageWarned.set(path, true);
+			trace('MISSING IMAGE: $path');
+		}
 		return null;
 	}
+
+	public static var missingImageWarned:Map<String, Bool> = new Map<String, Bool>();
 
 	public static var currentTrackedSounds:Map<String, Sound> = [];
 	public static function returnSound(path:String, key:String, ?library:String) {
