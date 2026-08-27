@@ -246,7 +246,14 @@ jobs:
       - name: Building iOS (release)
         run: |
           set -euxo pipefail
-          haxelib run lime build ios -nosign --app-version="4.0.0-${{ github.run_id}}" 2>&1 | tail -25
+          haxelib run lime build ios -nosign --app-version="4.0.0-${{ github.run_id}}" > _build.log 2>&1
+          BUILD_RC=$?
+          tail -60 _build.log
+          if [ $BUILD_RC -ne 0 ]; then
+            echo "## BUILD FAILED (exit $BUILD_RC)" >> $GITHUB_STEP_SUMMARY
+            tail -120 _build.log >> $GITHUB_STEP_SUMMARY
+            exit $BUILD_RC
+          fi
           APP_PATH=$(find export -name "*.app" -type d | head -1)
           if [ -z "$APP_PATH" ]; then
             echo "=== No .app produced. Listing export: ==="
