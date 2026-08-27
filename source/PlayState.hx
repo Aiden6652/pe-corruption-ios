@@ -1366,7 +1366,17 @@ class PlayState extends MusicBeatState
 		}
 
 		var arr:Array<String> = runtimeShaders.get(name);
-		return new FlxRuntimeShader(arr[0], arr[1]);
+		try
+		{
+			return new FlxRuntimeShader(arr[0], arr[1]);
+		}
+		catch (e:Dynamic)
+		{
+			// GLSL compile failure (e.g. unsupported syntax on iOS/Metal) must not
+			// crash the song - fall back to an empty shader.
+			FlxG.log.warn('Shader $name failed to compile: ' + e);
+			return new FlxRuntimeShader();
+		}
 		#else
 		FlxG.log.warn("Platform unsupported for Runtime Shaders!");
 		return null;
@@ -1419,6 +1429,19 @@ class PlayState extends MusicBeatState
 				}
 			}
 		}
+
+		// Fallback: bundled assets/shaders (Corruption shaders are merged into the
+		// base assets/ tree for the self-contained iOS build - not under mods/).
+		var fragPath:String = Paths.getPath('shaders/' + name + '.frag', TEXT);
+		var vertPath:String = Paths.getPath('shaders/' + name + '.vert', TEXT);
+		if (OpenFlAssets.exists(fragPath) || OpenFlAssets.exists(vertPath))
+		{
+			var f:String = OpenFlAssets.exists(fragPath) ? OpenFlAssets.getText(fragPath) : null;
+			var v:String = OpenFlAssets.exists(vertPath) ? OpenFlAssets.getText(vertPath) : null;
+			runtimeShaders.set(name, [f, v]);
+			return true;
+		}
+
 		FlxG.log.warn('Missing shader $name .frag AND .vert files!');
 		return false;
 	}
@@ -1562,6 +1585,14 @@ class PlayState extends MusicBeatState
 	public function startVideo(name:String)
 	{
 		#if VIDEOS_ALLOWED
+		#if ios
+		// iOS: hxvlc/MobileVLCKit native video is NOT integrated yet. Creating a
+		// FlxVideoSprite on iOS crashes natively (missing VLC lib) - skip videos
+		// so songs can start. (TODO: bundle MobileVLCKit and re-enable.)
+		FlxG.log.warn('iOS: video playback disabled (' + name + ')');
+		startAndEnd();
+		return;
+		#end
 		inCutscene = true;
 
 		var filepath:String = Paths.video(name);

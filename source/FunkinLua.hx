@@ -97,7 +97,11 @@ class FunkinLua {
 			if(resultStr != null && result != 0) {
 				trace('Error on lua script! ' + resultStr);
 				#if (windows || mobile)
+				#if !ios // no alert on iOS: keep gameplay going, log instead
 				lime.app.Application.current.window.alert(resultStr, 'Error on lua script!');
+				#else
+				luaTrace('Error loading lua script: "$script"\n' + resultStr, true, false, FlxColor.RED);
+				#end
 				#else
 				luaTrace('Error loading lua script: "$script"\n' + resultStr, true, false, FlxColor.RED);
 				#end
@@ -293,7 +297,13 @@ class FunkinLua {
 
 			if(leObj != null) {
 				var arr:Array<String> = PlayState.instance.runtimeShaders.get(shader);
-				leObj.shader = new FlxRuntimeShader(arr[0], arr[1], 120);
+				try {
+					leObj.shader = new FlxRuntimeShader(arr[0], arr[1], 120);
+				} catch (e:Dynamic) {
+					// GLSL compile failure on this platform: skip shader, never crash
+					luaTrace('setSpriteShader: $shader failed to compile: ' + e, false, false, FlxColor.RED);
+					return false;
+				}
 				return true;
 			}
 			#else

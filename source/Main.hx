@@ -47,6 +47,20 @@ class Main extends Sprite
 
 	public static function main():Void
 	{
+		#if ios
+		// Redirect trace() output to a log file in Documents so crashes can be
+		// diagnosed on-device (no console on iOS).
+		haxe.Log.trace = function(v:Dynamic, ?infos:haxe.PosInfos):Void
+		{
+			try
+			{
+				var f = sys.io.File.append(SUtil.getSavePath() + 'trace.log', true);
+				f.writeString(Date.now().toString() + ' ' + (infos != null ? infos.fileName + ':' + infos.lineNumber + ': ' : '') + Std.string(v) + '\n');
+				f.close();
+			}
+			catch (e:Dynamic) {}
+		};
+		#end
 		Lib.current.addChild(new Main());
 	}
 
