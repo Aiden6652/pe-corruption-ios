@@ -206,6 +206,24 @@ jobs:
           echo "APP_PATH=$APP_PATH"
           codesign --force --sign - "$APP_PATH" || echo 'codesign adhoc failed (expected)'
 
+      - name: Diagnostic - list packaged .app asset layout
+        run: |
+          set -euxo pipefail
+          APP_PATH=$(find export -name "*.app" -type d | head -1)
+          echo "=== .app top-level dirs ==="
+          find "$APP_PATH" -maxdepth 1 -type d | sed "s#$APP_PATH#.#"
+          echo "=== raw assets/ dir present? ==="
+          ls -la "$APP_PATH/assets" 2>/dev/null | head -30 || echo "NO raw assets/ at app root"
+          echo "=== search for key Corruption files in bundle ==="
+          echo "-- weekList.txt (anywhere):"
+          find "$APP_PATH" -name 'weekList.txt' 2>/dev/null | head
+          echo "-- a sample image (assets/images/*.png):"
+          find "$APP_PATH" -path '*assets/images*' -name '*.png' 2>/dev/null | head -5
+          echo "-- assets/data tree size if present:"
+          du -sh "$APP_PATH/assets" 2>/dev/null || echo "no assets dir"
+          echo "=== full asset path sample (depth 3) ==="
+          find "$APP_PATH" -path '*assets*' -maxdepth 4 2>/dev/null | head -40
+
       - name: Package IPA (unsigned)
         run: |
           set -euxo pipefail

@@ -35,10 +35,12 @@ class SUtil
 		#end
 
 		#if ios
-		// Bundled-asset build: all engine assets (base + Corruption) are embedded
-		// in the read-only app bundle and read via OpenFlAssets / FileSystem from
-		// here. Writable data (saves, crash logs) uses getSavePath() instead.
-		var p:String = LimeSystem.applicationDirectory;
+		// Assets are embedded in the read-only app bundle, then copied into the
+		// writable Documents folder on first launch (see Main.bootstrapThenStart).
+		// The engine then reads everything from Documents via FileSystem, exactly
+		// like the original iOS port expects. Writable data (saves, crash logs)
+		// also lives in Documents via getSavePath().
+		var p:String = LimeSystem.documentsDirectory;
 		if (p != null && p.length > 0 && !p.endsWith('/'))
 			p += '/';
 		return p;
