@@ -254,6 +254,15 @@ jobs:
           haxelib install thx.core 0.44.0
           python3 patch_jsonpath.py
           haxelib list
+          # Copy hxvlc's iOS static libvlc into the project (plain relative path -
+          # ${haxelib:...} vars silently break lime's <ndll> parsing).
+          mkdir -p libs/ios
+          HXVLCDIR=$(haxelib path hxvlc 2>/dev/null | head -1)
+          echo "HXVLCDIR=$HXVLCDIR"
+          ls "$HXVLCDIR/project/vlc/lib/iOS/" 2>/dev/null || true
+          cp "$HXVLCDIR/project/vlc/lib/iOS/libvlc_device.a" libs/ios/ 2>/dev/null || echo "device lib copy failed"
+          cp "$HXVLCDIR/project/vlc/lib/iOS/libvlc_sim.a"    libs/ios/ 2>/dev/null || echo "sim lib copy failed"
+          ls -la libs/ios/ || true
 
       - name: Building iOS (release)
         run: |
