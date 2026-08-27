@@ -91,9 +91,17 @@ class WeekData {
 		weeksLoaded.clear();
 		#if MODS_ALLOWED
 		var disabledMods:Array<String> = [];
+		var directories:Array<String> = [];
+		#if ios
+		// iOS: ignore mods entirely. The Corruption game IS the base content
+		// (bundled in assets/), and stale modsList.txt/mods in Documents (from
+		// earlier sideloads) were injecting vanilla weeks (tutorial) into the
+		// story/freeplay lists. custom_events/custom_notetypes load via
+		// Paths.modFolders from the bundle, so no mod loader is needed.
+		directories = [SUtil.getPath() + Paths.getPreloadPath()];
+		#else
 		var modsListPath:String = SUtil.getPath() + 'modsList.txt';
-		var directories:Array<String> = [Paths.mods(), SUtil.getPath() + Paths.getPreloadPath()];
-		var originalLength:Int = directories.length;
+		directories = [Paths.mods(), SUtil.getPath() + Paths.getPreloadPath()];
 		if(FileSystem.exists(modsListPath))
 		{
 			var stuff:Array<String> = CoolUtil.coolTextFile(modsListPath);
@@ -127,6 +135,8 @@ class WeekData {
 				//trace('pushed Directory: ' + folder);
 			}
 		}
+		#end
+		var originalLength:Int = directories.length;
 		#else
 		var directories:Array<String> = [Paths.getPreloadPath()];
 		var originalLength:Int = directories.length;
