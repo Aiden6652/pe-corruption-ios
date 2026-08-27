@@ -208,7 +208,7 @@ jobs:
           # sparse clone) stay in assets/weeks/ and get picked up by WeekData's
           # directory scan -> vanilla songs show first. Delete them.
           cd assets/weeks
-          ls | grep -vE '^story[0-9]+z?\.json$|^weekList\.txt$' | xargs -r rm -f
+          find . -maxdepth 1 -name '*.json' ! -name 'story*.json' -delete
           printf 'story0\nstory1\nstory2\nstory3\nstory4\nstory5\nstory6\nstory7\nstory8\nstory9\nstory9z\n' > weekList.txt
           echo "=== assets/weeks now ==="
           ls
