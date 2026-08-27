@@ -14,23 +14,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@main
 
-      - name: Fetch game assets from upstream (sparse)
+      - name: Fetch Corruption assets from GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euxo pipefail
-          mkdir -p $GITHUB_WORKSPACE/assets
-          rm -rf /tmp/upstream
-          for i in 1 2 3 4 5; do
-            git clone --depth 1 --filter=blob:none --sparse https://github.com/softbf395/psych-engine-0.6.3-iOS-port.git /tmp/upstream && break
-            echo "upstream clone retry $i"
-            rm -rf /tmp/upstream
-            sleep 15
-          done
-          cd /tmp/upstream
-          git sparse-checkout set assets
-          cp -r assets/. $GITHUB_WORKSPACE/assets/
+          mkdir -p $GITHUB_WORKSPACE/assets $GITHUB_WORKSPACE/example_mods
+          mkdir -p /tmp/ca
+          gh release download corruption-assets-v1 -R Aiden6652/pe-corruption-ios --pattern 'corruption-assets.zip' --dir /tmp/ca
+          gh release download corruption-assets-v1 -R Aiden6652/pe-corruption-ios --pattern 'corruption-mods.zip' --dir /tmp/ca
+          cd /tmp/ca
+          unzip -o corruption-assets.zip -d $GITHUB_WORKSPACE/assets
+          unzip -o corruption-mods.zip -d $GITHUB_WORKSPACE/example_mods
           cd $GITHUB_WORKSPACE
-          rm -rf /tmp/upstream
+          rm -rf /tmp/ca
           ls $GITHUB_WORKSPACE/assets/ | head
+          ls $GITHUB_WORKSPACE/example_mods/ | head
 
       - name: Setup Android NDK
         uses: nttld/setup-ndk@main
@@ -106,23 +105,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@main
 
-      - name: Fetch game assets from upstream (sparse)
+      - name: Fetch Corruption assets from GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euxo pipefail
-          mkdir -p $GITHUB_WORKSPACE/assets
-          rm -rf /tmp/upstream
-          for i in 1 2 3 4 5; do
-            git clone --depth 1 --filter=blob:none --sparse https://github.com/softbf395/psych-engine-0.6.3-iOS-port.git /tmp/upstream && break
-            echo "upstream clone retry $i"
-            rm -rf /tmp/upstream
-            sleep 15
-          done
-          cd /tmp/upstream
-          git sparse-checkout set assets
-          cp -r assets/. $GITHUB_WORKSPACE/assets/
+          mkdir -p $GITHUB_WORKSPACE/assets $GITHUB_WORKSPACE/example_mods
+          mkdir -p /tmp/ca
+          gh release download corruption-assets-v1 -R Aiden6652/pe-corruption-ios --pattern 'corruption-assets.zip' --dir /tmp/ca
+          gh release download corruption-assets-v1 -R Aiden6652/pe-corruption-ios --pattern 'corruption-mods.zip' --dir /tmp/ca
+          cd /tmp/ca
+          unzip -o corruption-assets.zip -d $GITHUB_WORKSPACE/assets
+          unzip -o corruption-mods.zip -d $GITHUB_WORKSPACE/example_mods
           cd $GITHUB_WORKSPACE
-          rm -rf /tmp/upstream
+          rm -rf /tmp/ca
           ls $GITHUB_WORKSPACE/assets/ | head
+          ls $GITHUB_WORKSPACE/example_mods/ | head
 
       - name: Setup Haxe
         uses: krdlab/setup-haxe@master
