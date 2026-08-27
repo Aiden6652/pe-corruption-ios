@@ -125,8 +125,8 @@
 	<haxelib name="hxvlc" if="VIDEOS_ALLOWED"/>
 	<!-- hxvlc ships iOS static libvlc (libvlc_device.a / libvlc_sim.a) but its
 	     include.xml only links the system frameworks - link the static libs here. -->
-	<ndll name="vlc_device" dir="libs/ios" if="ios && device"/>
-	<ndll name="vlc_sim"    dir="libs/ios" if="ios && simulator"/>
+	<dependency name="vlc_device" path="libs/ios" if="ios && device"/>
+	<dependency name="vlc_sim"    path="libs/ios" if="ios && simulator"/>
 	<haxelib name="extension-androidtools" if="android"/>
 	<haxelib name="faxe" if='switch'/>
 	<haxelib name="polymod" />
