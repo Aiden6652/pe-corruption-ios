@@ -194,6 +194,29 @@ jobs:
           echo "=== example_mods contents ==="
           find example_mods -type f | head -20
 
+      - name: Fix week order (V-Slice story weeks)
+        run: |
+          set -euxo pipefail
+          # AE uses V-Slice story0..9.json weeks; Psych's WeekData reads
+          # weeks/weekList.txt. The bundled weekList.txt is EMPTY (AE doesn't
+          # need one), which made the game fall back to the default week order.
+          # Write the correct order (matches desktop AE story0-9 + hidden story9z).
+          cat > assets/weeks/weekList.txt <<'EOF'
+story0
+story1
+story2
+story3
+story4
+story5
+story6
+story7
+story8
+story9
+story9z
+EOF
+          echo "=== weekList.txt ==="
+          cat assets/weeks/weekList.txt
+
       - name: Setup Haxe
         uses: krdlab/setup-haxe@master
         with:
