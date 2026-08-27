@@ -269,10 +269,10 @@ jobs:
           haxelib run lime build ios -nosign --app-version="4.0.0-${{ github.run_id}}" > _build.log 2>&1
           BUILD_RC=$?
           set -e
-          tail -60 _build.log
+          grep -vE "Warning|WDeprecated" _build.log | tail -60
           if [ $BUILD_RC -ne 0 ]; then
             echo "## BUILD FAILED (exit $BUILD_RC)" >> $GITHUB_STEP_SUMMARY
-            tail -120 _build.log >> $GITHUB_STEP_SUMMARY
+            grep -vE "Warning|WDeprecated" _build.log | tail -120 >> $GITHUB_STEP_SUMMARY
             exit $BUILD_RC
           fi
           APP_PATH=$(find export -name "*.app" -type d | head -1)
