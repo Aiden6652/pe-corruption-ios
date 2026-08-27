@@ -123,12 +123,7 @@
 	<haxelib name="flixel-ui" />
 	<haxelib name="linc_luajit" if="LUA_ALLOWED"/>
 	<haxelib name="hxvlc" if="VIDEOS_ALLOWED"/>
-	<!-- hxvlc ships iOS static libvlc (libvlc_device.a / libvlc_sim.a) but its
-	     include.xml only links the system frameworks. Link the static lib via
-	     lime's native <dependency> mechanism (name -> lib<name>.a, path -> dir). -->
-	<dependency name="vlc_device" path="${haxelib:hxvlc}/project/vlc/lib/iOS" if="ios && device"/>
-	<dependency name="vlc_sim"    path="${haxelib:hxvlc}/project/vlc/lib/iOS" if="ios && simulator"/>
-	<haxelib name="extension-androidtools" if="android"/>
+        <haxelib name="extension-androidtools" if="android"/>
 	<haxelib name="faxe" if='switch'/>
 	<haxelib name="polymod" />
 	<haxelib name="discord_rpc" if="desktop"/>
