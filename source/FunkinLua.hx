@@ -1506,6 +1506,18 @@ class FunkinLua {
 		Lua_helper.add_callback(lua, "precacheMusic", function(name:String) {
 			CoolUtil.precacheMusic(name);
 		});
+		Lua_helper.add_callback(lua, "precacheAnimatedImage", function(name:String) {
+			// preload a sparrow/v3 atlas animation without showing it (AE compat)
+			var spr:ModchartSprite = new ModchartSprite(0, 0);
+			loadFrames(spr, name, "sparrow");
+			spr.destroy();
+		});
+		Lua_helper.add_callback(lua, "stopMusic", function(?name:String = '') {
+			FlxG.sound.music.stop();
+		});
+		Lua_helper.add_callback(lua, "moveCamera", function(mode:String) {
+			PlayState.instance.moveCamera(mode.toLowerCase() == 'dad' || mode.toLowerCase() == 'boyfriend');
+		});
 		Lua_helper.add_callback(lua, "triggerEvent", function(name:String, arg1:Dynamic, arg2:Dynamic) {
 			var value1:String = arg1;
 			var value2:String = arg2;
@@ -2178,6 +2190,64 @@ class FunkinLua {
 				PlayState.instance.startCountdown();
 			}
 			return true;
+			#end
+		});
+
+		// APlayer's Engine video sprite API (Corruption stage scripts rely on it)
+		Lua_helper.add_callback(lua, "makeLuaVideoSprite", function(name:String, videoFile:String, ?x:Float = 0, ?y:Float = 0, ?loop:Bool = false, ?addToStage:Bool = false, ?vidWidth:Int = 0, ?vidHeight:Int = 0) {
+			#if VIDEOS_ALLOWED
+			PlayState.instance.makeLuaVideoSprite(name, videoFile, x, y, loop, addToStage, vidWidth, vidHeight);
+			return true;
+			#else
+			luaTrace('makeLuaVideoSprite: VIDEOS not supported on this platform!', false, false, FlxColor.RED);
+			return false;
+			#end
+		});
+		Lua_helper.add_callback(lua, "addLuaVideoSprite", function(name:String, ?show:Bool = true) {
+			#if VIDEOS_ALLOWED
+			PlayState.instance.addLuaVideoSprite(name, show);
+			return true;
+			#else
+			return false;
+			#end
+		});
+		Lua_helper.add_callback(lua, "playVideo", function(name:String, ?loop:Bool = null) {
+			#if VIDEOS_ALLOWED
+			PlayState.instance.playVideo(name, loop);
+			return true;
+			#else
+			return false;
+			#end
+		});
+		Lua_helper.add_callback(lua, "pauseVideo", function(name:String) {
+			#if VIDEOS_ALLOWED
+			PlayState.instance.pauseVideo(name);
+			return true;
+			#else
+			return false;
+			#end
+		});
+		Lua_helper.add_callback(lua, "resumeVideo", function(name:String) {
+			#if VIDEOS_ALLOWED
+			PlayState.instance.resumeVideo(name);
+			return true;
+			#else
+			return false;
+			#end
+		});
+		Lua_helper.add_callback(lua, "removeLuaVideoSprite", function(name:String, ?destroy:Bool = true) {
+			#if VIDEOS_ALLOWED
+			PlayState.instance.removeLuaVideoSprite(name, destroy);
+			return true;
+			#else
+			return false;
+			#end
+		});
+		Lua_helper.add_callback(lua, "isVideoPlaying", function(name:String):Bool {
+			#if VIDEOS_ALLOWED
+			return PlayState.instance.isVideoPlaying(name);
+			#else
+			return false;
 			#end
 		});
 

@@ -1568,9 +1568,128 @@ class PlayState extends MusicBeatState
 	public function getLuaObject(tag:String, text:Bool=true):FlxSprite {
 		if(modchartSprites.exists(tag)) return modchartSprites.get(tag);
 		if(text && modchartTexts.exists(tag)) return modchartTexts.get(tag);
+		#if VIDEOS_ALLOWED
+		// Corruption scripts also drive video sprites via setProperty/getProperty etc.
+		if(videoSprites.exists(tag) && Std.isOfType(videoSprites.get(tag), FlxSprite)) return videoSprites.get(tag);
+		#end
 		if(variables.exists(tag)) return variables.get(tag);
 		return null;
 	}
+
+	#if VIDEOS_ALLOWED
+	// APlayer's Engine video sprite API (used heavily by Corruption stage scripts:
+	// Bloodlust snow/embers/smoke, Headshot cinematics, Sas, Yandere etc).
+	// On iOS hxvlc/MobileVLCKit native playback is not integrated yet, so these
+	// create an invisible placeholder instead - the important part is that the
+	// Lua calls succeed and the rest of the script keeps running.
+	public var videoSprites:Map<String, Dynamic> = new Map<String, Dynamic>();
+
+	public function makeLuaVideoSprite(name:String, videoFile:String, ?x:Float = 0, ?y:Float = 0, ?loop:Bool = false, ?addToStage:Bool = false, ?vidWidth:Int = 0, ?vidHeight:Int = 0):Void
+	{
+		#if ios
+		var spr:FlxSprite = new FlxSprite(x, y);
+		spr.makeGraphic(1, 1, 0x00000000);
+		spr.visible = false;
+		videoSprites.set(name, spr);
+		#else
+		var spr:FlxVideoSprite = new FlxVideoSprite(x, y);
+		if (vidWidth > 0 && vidHeight > 0)
+		{
+			spr.setGraphicSize(vidWidth, vidHeight);
+			spr.updateHitbox();
+		}
+		spr.bitmap.loop = loop;
+		var path:String = Paths.video(videoFile);
+		#if sys
+		if (FileSystem.exists(path))
+		#else
+		if (OpenFlAssets.exists(path))
+		#end
+		{
+			spr.precache(path);
+		}
+		else
+		{
+			FlxG.log.warn('makeLuaVideoSprite: video not found: ' + videoFile);
+		}
+		videoSprites.set(name, spr);
+		#end
+	}
+
+	public function addLuaVideoSprite(name:String, ?show:Bool = true):Void
+	{
+		var spr:Dynamic = videoSprites.get(name);
+		if (spr == null) return;
+		#if ios
+		// placeholder - nothing to add
+		#else
+		if (Std.isOfType(spr, FlxVideoSprite))
+			add(spr);
+		#end
+	}
+
+	public function playVideo(name:String, ?loop:Bool = null):Void
+	{
+		var spr:Dynamic = videoSprites.get(name);
+		if (spr == null) return;
+		#if ios
+		// no-op placeholder
+		#else
+		if (loop != null) spr.bitmap.loop = loop;
+		if (Std.isOfType(spr, FlxVideoSprite)) spr.play();
+		#end
+	}
+
+	public function pauseVideo(name:String):Void
+	{
+		var spr:Dynamic = videoSprites.get(name);
+		if (spr == null) return;
+		#if !ios
+		if (Std.isOfType(spr, FlxVideoSprite)) spr.pause();
+		#end
+	}
+
+	public function resumeVideo(name:String):Void
+	{
+		var spr:Dynamic = videoSprites.get(name);
+		if (spr == null) return;
+		#if !ios
+		if (Std.isOfType(spr, FlxVideoSprite)) spr.resume();
+		#end
+	}
+
+	public function removeLuaVideoSprite(name:String, ?destroy:Bool = true):Void
+	{
+		var spr:Dynamic = videoSprites.get(name);
+		if (spr == null) return;
+		videoSprites.remove(name);
+		#if ios
+		if (Std.isOfType(spr, FlxSprite))
+		{
+			remove(spr);
+			spr.destroy();
+		}
+		#else
+		if (Std.isOfType(spr, FlxVideoSprite))
+		{
+			remove(spr);
+			if (destroy) spr.destroy();
+		}
+		#end
+	}
+
+	public function isVideoPlaying(name:String):Bool
+	{
+		var spr:Dynamic = videoSprites.get(name);
+		if (spr == null) return false;
+		#if ios
+		return false;
+		#else
+		if (Std.isOfType(spr, FlxVideoSprite)) return spr.bitmap.playing;
+		return false;
+		#end
+	}
+	#end
 
 	function startCharacterPos(char:Character, ?gfCheck:Bool = false) {
 		if(gfCheck && char.curCharacter.startsWith('gf')) { //IF DAD IS GIRLFRIEND, HE GOES TO HER POSITION

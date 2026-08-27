@@ -165,6 +165,35 @@ jobs:
           echo "=== merged assets size ==="
           du -sh assets
 
+      - name: Fetch + merge Corruption global mods (custom_events/custom_notetypes)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euxo pipefail
+          if ! gh release download corruption-assets-v1 \
+                --repo Aiden6652/pe-corruption-ios \
+                --pattern 'corruption-mods.zip' --clobber; then
+            curl -L -o corruption-mods.zip \
+              "https://github.com/Aiden6652/pe-corruption-ios/releases/download/corruption-assets-v1/corruption-mods.zip"
+          fi
+          ls -lh corruption-mods.zip || true
+          mkdir -p example_mods
+          python3 - <<'PY'
+          import zipfile, os
+          z = zipfile.ZipFile('corruption-mods.zip')
+          for info in z.infolist():
+              name = info.filename.replace('\\', '/')
+              if not name or name.endswith('/'):
+                  continue
+              target = os.path.join('example_mods', name)
+              os.makedirs(os.path.dirname(target), exist_ok=True)
+              with z.open(info) as src, open(target, 'wb') as dst:
+                  dst.write(src.read())
+          PY
+          rm -f corruption-mods.zip
+          echo "=== example_mods contents ==="
+          find example_mods -type f | head -20
+
       - name: Setup Haxe
         uses: krdlab/setup-haxe@master
         with:
