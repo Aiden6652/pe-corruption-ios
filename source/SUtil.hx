@@ -35,14 +35,17 @@ class SUtil
 		#end
 
 		#if ios
-		// Assets are embedded in the read-only app bundle, then copied into the
-		// writable Documents folder on first launch (see Main.bootstrapThenStart).
-		// The engine then reads everything from Documents via FileSystem, exactly
-		// like the original iOS port expects. Writable data (saves, crash logs)
-		// also lives in Documents via getSavePath().
-		var p:String = LimeSystem.documentsDirectory;
+		// OpenFL iOS 把所有 <assets path="assets/..."> 声明打进 .app/assets/assets/（双 assets 嵌套，
+		// 已由 CI 诊断日志确证：PsychEngine.app/assets/assets/weeks/weekList.txt）。
+		// 引擎用 getPath() + ('assets/xxx' | 'mods/xxx') 拼路径：
+		//   getPath() + 'assets/weeks/x'  -> .app/assets/assets/weeks/x  (命中)
+		//   getPath() + 'mods/x'          -> .app/assets/mods/x          (example_mods rename=mods，单层，命中)
+		// 所以 iOS 返回 bundle 的 assets/ 目录；可写数据(saves/crash)走 getSavePath()。
+		var p:String = LimeSystem.applicationDirectory;
 		if (p != null && p.length > 0 && !p.endsWith('/'))
 			p += '/';
+		if (FileSystem.exists(p + 'assets'))
+			p += 'assets/';
 		return p;
 		#end
 

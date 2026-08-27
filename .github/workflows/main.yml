@@ -206,23 +206,20 @@ jobs:
           echo "APP_PATH=$APP_PATH"
           codesign --force --sign - "$APP_PATH" || echo 'codesign adhoc failed (expected)'
 
-      - name: Diagnostic - list packaged .app asset layout
+      - name: Diagnostic - packaged .app layout
         run: |
-          set -euxo pipefail
-          APP_PATH=$(find export -name "*.app" -type d | head -1)
-          echo "=== .app top-level dirs ==="
-          find "$APP_PATH" -maxdepth 1 -type d | sed "s#$APP_PATH#.#"
-          echo "=== raw assets/ dir present? ==="
-          ls -la "$APP_PATH/assets" 2>/dev/null | head -30 || echo "NO raw assets/ at app root"
-          echo "=== search for key Corruption files in bundle ==="
-          echo "-- weekList.txt (anywhere):"
-          find "$APP_PATH" -name 'weekList.txt' 2>/dev/null | head
-          echo "-- a sample image (assets/images/*.png):"
-          find "$APP_PATH" -path '*assets/images*' -name '*.png' 2>/dev/null | head -5
-          echo "-- assets/data tree size if present:"
-          du -sh "$APP_PATH/assets" 2>/dev/null || echo "no assets dir"
-          echo "=== full asset path sample (depth 3) ==="
-          find "$APP_PATH" -path '*assets*' -maxdepth 4 2>/dev/null | head -40
+          set -uxo pipefail
+          APP_PATH=$(find export -name "*.app" -type d | head -1 || true)
+          if [ -z "$APP_PATH" ]; then echo "NO APP - skip diag"; exit 0; fi
+          echo "APP_PATH=$APP_PATH"
+          echo "=== .app/assets top-level ==="
+          ls -la "$APP_PATH/assets" 2>/dev/null | head -30 || true
+          echo "=== assets tree (maxdepth 3) ==="
+          (find "$APP_PATH/assets" -maxdepth 3 2>/dev/null | head -80) || true
+          echo "=== key Corruption files ==="
+          find "$APP_PATH" -name 'weekList.txt' 2>/dev/null | head -5 || true
+          echo "=== bundle size ==="
+          du -sh "$APP_PATH" 2>/dev/null || true
 
       - name: Package IPA (unsigned)
         run: |
