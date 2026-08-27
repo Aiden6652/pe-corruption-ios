@@ -49,6 +49,9 @@ class FreeplayState extends MusicBeatState
 	var bg:FlxSprite;
 	var intendedColor:Int;
 	var colorTween:FlxTween;
+	var bgTime:Float = 0;
+	var bgStartX:Float = 0;
+	var bgStartY:Float = 0;
 
 	override function create()
 	{
@@ -102,10 +105,13 @@ class FreeplayState extends MusicBeatState
 			}
 		}*/
 
-		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		bg = new FlxSprite().loadGraphic(Paths.image('freeplayBG'));
 		bg.antialiasing = ClientPrefs.globalAntialiasing;
 		add(bg);
 		bg.screenCenter();
+		bgStartX = bg.x;
+		bgStartY = bg.y;
+		bg.color = FlxColor.WHITE;
 
 		grpSongs = new FlxTypedGroup<Alphabet>();
 		add(grpSongs);
@@ -252,6 +258,15 @@ class FreeplayState extends MusicBeatState
 		if (FlxG.sound.music.volume < 0.7)
 		{
 			FlxG.sound.music.volume += 0.5 * FlxG.elapsed;
+		}
+
+		// AE-style dynamic Freeplay background (stepperFreeplayBGX/Y - the bg
+		// drifts/loops). Recreate it subtly: slow sinusoidal drift.
+		bgTime += elapsed;
+		if (bg != null)
+		{
+			bg.x = bgStartX + Math.cos(bgTime * 0.35) * 14;
+			bg.y = bgStartY + Math.sin(bgTime * 0.25) * 10;
 		}
 
 		lerpScore = Math.floor(FlxMath.lerp(lerpScore, intendedScore, CoolUtil.boundTo(elapsed * 24, 0, 1)));
