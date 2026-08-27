@@ -4585,6 +4585,7 @@ class PlayState extends MusicBeatState
 	private function updateVSliceTouch():Void
 	{
 		if (!startedCountdown || paused || cpuControlled || !generatedMusic || inCutscene || endingSong) return;
+		if (keysArray == null || keysArray.length < 4) return;
 
 		// FourLanes: each lane is FlxG.width/4 wide, full height
 		// Lane i -> direction: 0=LEFT, 1=DOWN, 2=UP, 3=RIGHT (NoteDirection enum order)
@@ -4593,11 +4594,12 @@ class PlayState extends MusicBeatState
 		{
 			if (touch == null) continue;
 			var lane:Int = getVSliceLaneFromTouch(touch);
-			if (lane > -1) anyDown[lane] = true;
+			if (lane > -1 && lane < 4) anyDown[lane] = true;
 		}
 
 		for (i in 0...4)
 		{
+			if (keysArray[i] == null || keysArray[i].length == 0) continue;
 			if (anyDown[i] && !vSliceTouchActive[i])
 			{
 				vSliceTouchActive[i] = true;
