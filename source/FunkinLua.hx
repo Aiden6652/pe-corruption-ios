@@ -1518,6 +1518,53 @@ class FunkinLua {
 		Lua_helper.add_callback(lua, "moveCamera", function(mode:String) {
 			PlayState.instance.moveCamera(mode.toLowerCase() == 'dad' || mode.toLowerCase() == 'boyfriend');
 		});
+
+		// Defensive extras (AE / newer-Psych APIs that Corruption files may call):
+		Lua_helper.add_callback(lua, "getLuaObject", function(name:String, ?text:Bool = true) {
+			return PlayState.instance.getLuaObject(name, text);
+		});
+		Lua_helper.add_callback(lua, "setVar", function(name:String, value:Dynamic) {
+			PlayState.instance.variables.set(name, value);
+		});
+		Lua_helper.add_callback(lua, "getVar", function(name:String) {
+			if (PlayState.instance.variables.exists(name)) return PlayState.instance.variables.get(name);
+			return null;
+		});
+		Lua_helper.add_callback(lua, "removeVar", function(name:String) {
+			if (PlayState.instance.variables.exists(name))
+			{
+				PlayState.instance.variables.remove(name);
+				return true;
+			}
+			return false;
+		});
+		Lua_helper.add_callback(lua, "createRuntimeShader", function(name:String) {
+			#if (!flash && MODS_ALLOWED && sys)
+			return PlayState.instance.createRuntimeShader(name);
+			#else
+			return null;
+			#end
+		});
+		Lua_helper.add_callback(lua, "cancelTweensOf", function(tag:String) {
+			var spr:FlxSprite = PlayState.instance.getLuaObject(tag);
+			if (spr != null) FlxTween.cancelTweensOf(spr);
+		});
+		Lua_helper.add_callback(lua, "addBehindBF", function(tag:String) {
+			var spr:FlxSprite = PlayState.instance.getLuaObject(tag);
+			if (spr != null) PlayState.instance.addBehindBF(spr);
+		});
+		Lua_helper.add_callback(lua, "addBehindDad", function(tag:String) {
+			var spr:FlxSprite = PlayState.instance.getLuaObject(tag);
+			if (spr != null) PlayState.instance.addBehindDad(spr);
+		});
+		Lua_helper.add_callback(lua, "addBehindGF", function(tag:String) {
+			var spr:FlxSprite = PlayState.instance.getLuaObject(tag);
+			if (spr != null) PlayState.instance.addBehindGF(spr);
+		});
+		Lua_helper.add_callback(lua, "getTimeFromSteps", function(steps:Int):Float {
+			return Conductor.stepCrochet * steps;
+		});
+		Lua_helper.add_callback(lua, "stopMusic", function(?name:String = '') {
 		Lua_helper.add_callback(lua, "triggerEvent", function(name:String, arg1:Dynamic, arg2:Dynamic) {
 			var value1:String = arg1;
 			var value2:String = arg2;
