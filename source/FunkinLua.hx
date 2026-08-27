@@ -1564,7 +1564,6 @@ class FunkinLua {
 		Lua_helper.add_callback(lua, "getTimeFromSteps", function(steps:Int):Float {
 			return Conductor.stepCrochet * steps;
 		});
-		Lua_helper.add_callback(lua, "stopMusic", function(?name:String = '') {
 		Lua_helper.add_callback(lua, "triggerEvent", function(name:String, arg1:Dynamic, arg2:Dynamic) {
 			var value1:String = arg1;
 			var value2:String = arg2;
