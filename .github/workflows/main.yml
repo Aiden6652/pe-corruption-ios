@@ -170,6 +170,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euxo pipefail
+          # Wipe Psych template mods first (weeks, images, songs, vanilla data
+          # from the stock example_mods) - they pollute the week list with
+          # vanilla weeks (tutorial etc. showed up first in story/freeplay).
+          rm -rf example_mods
+          mkdir -p example_mods
           if ! gh release download corruption-assets-v1 \
                 --repo Aiden6652/pe-corruption-ios \
                 --pattern 'corruption-mods.zip' --clobber; then
@@ -177,7 +182,6 @@ jobs:
               "https://github.com/Aiden6652/pe-corruption-ios/releases/download/corruption-assets-v1/corruption-mods.zip"
           fi
           ls -lh corruption-mods.zip || true
-          mkdir -p example_mods
           python3 - <<'PY'
           import zipfile, os
           z = zipfile.ZipFile('corruption-mods.zip')
@@ -200,10 +204,16 @@ jobs:
           # AE uses V-Slice story0..9.json weeks; Psych's WeekData reads
           # weeks/weekList.txt. The bundled weekList.txt is EMPTY (AE doesn't
           # need one), which made the game fall back to the default week order.
-          # Write the correct order (matches desktop AE story0-9 + hidden story9z).
-          printf 'story0\nstory1\nstory2\nstory3\nstory4\nstory5\nstory6\nstory7\nstory8\nstory9\nstory9z\n' > assets/weeks/weekList.txt
+          # Also: base vanilla weeks (tutorial/week1..7 .json from the upstream
+          # sparse clone) stay in assets/weeks/ and get picked up by WeekData's
+          # directory scan -> vanilla songs show first. Delete them.
+          cd assets/weeks
+          ls | grep -vE '^story[0-9]+z?\.json$|^weekList\.txt$' | xargs -r rm -f
+          printf 'story0\nstory1\nstory2\nstory3\nstory4\nstory5\nstory6\nstory7\nstory8\nstory9\nstory9z\n' > weekList.txt
+          echo "=== assets/weeks now ==="
+          ls
           echo "=== weekList.txt ==="
-          cat assets/weeks/weekList.txt
+          cat weekList.txt
 
       - name: Setup Haxe
         uses: krdlab/setup-haxe@master
