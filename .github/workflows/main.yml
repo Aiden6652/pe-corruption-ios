@@ -201,19 +201,7 @@ jobs:
           # weeks/weekList.txt. The bundled weekList.txt is EMPTY (AE doesn't
           # need one), which made the game fall back to the default week order.
           # Write the correct order (matches desktop AE story0-9 + hidden story9z).
-          cat > assets/weeks/weekList.txt <<'EOF'
-story0
-story1
-story2
-story3
-story4
-story5
-story6
-story7
-story8
-story9
-story9z
-EOF
+          printf 'story0\nstory1\nstory2\nstory3\nstory4\nstory5\nstory6\nstory7\nstory8\nstory9\nstory9z\n' > assets/weeks/weekList.txt
           echo "=== weekList.txt ==="
           cat assets/weeks/weekList.txt
 
