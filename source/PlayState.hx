@@ -877,6 +877,7 @@ class PlayState extends MusicBeatState
 
 		// STAGE SCRIPTS
 		#if (MODS_ALLOWED && LUA_ALLOWED)
+		trace('CREATE step: scripts loaded, stage: $curStage');
 		startLuasOnFolder('stages/' + curStage + '.lua');
 		#end
 
@@ -1047,7 +1048,9 @@ class PlayState extends MusicBeatState
 		opponentStrums = new FlxTypedGroup<StrumNote>();
 		playerStrums = new FlxTypedGroup<StrumNote>();
 
+		trace('CREATE step: strums created');
 		generateSong(SONG.song);
+		trace('CREATE step: song generated');
 
 		#if LUA_ALLOWED
 		for (notetype in noteTypeMap.keys())
@@ -1299,6 +1302,7 @@ class PlayState extends MusicBeatState
 		}
 		else
 		{
+			trace('CREATE step: countdown start');
 			startCountdown();
 		}
 		RecalculateRating();
@@ -1586,12 +1590,6 @@ class PlayState extends MusicBeatState
 
 	public function makeLuaVideoSprite(name:String, videoFile:String, ?x:Float = 0, ?y:Float = 0, ?loop:Bool = false, ?addToStage:Bool = false, ?vidWidth:Int = 0, ?vidHeight:Int = 0):Void
 	{
-		#if ios
-		var spr:FlxSprite = new FlxSprite(x, y);
-		spr.makeGraphic(1, 1, 0x00000000);
-		spr.visible = false;
-		videoSprites.set(name, spr);
-		#else
 		var spr:FlxVideoSprite = new FlxVideoSprite(x, y);
 		if (vidWidth > 0 && vidHeight > 0)
 		{
@@ -1613,49 +1611,36 @@ class PlayState extends MusicBeatState
 			FlxG.log.warn('makeLuaVideoSprite: video not found: ' + videoFile);
 		}
 		videoSprites.set(name, spr);
-		#end
 	}
 
 	public function addLuaVideoSprite(name:String, ?show:Bool = true):Void
 	{
 		var spr:Dynamic = videoSprites.get(name);
 		if (spr == null) return;
-		#if ios
-		// placeholder - nothing to add
-		#else
 		if (Std.isOfType(spr, FlxVideoSprite))
 			add(spr);
-		#end
 	}
 
 	public function playVideo(name:String, ?loop:Bool = null):Void
 	{
 		var spr:Dynamic = videoSprites.get(name);
 		if (spr == null) return;
-		#if ios
-		// no-op placeholder
-		#else
 		if (loop != null) spr.bitmap.loop = loop;
 		if (Std.isOfType(spr, FlxVideoSprite)) spr.play();
-		#end
 	}
 
 	public function pauseVideo(name:String):Void
 	{
 		var spr:Dynamic = videoSprites.get(name);
 		if (spr == null) return;
-		#if !ios
 		if (Std.isOfType(spr, FlxVideoSprite)) spr.pause();
-		#end
 	}
 
 	public function resumeVideo(name:String):Void
 	{
 		var spr:Dynamic = videoSprites.get(name);
 		if (spr == null) return;
-		#if !ios
 		if (Std.isOfType(spr, FlxVideoSprite)) spr.resume();
-		#end
 	}
 
 	public function removeLuaVideoSprite(name:String, ?destroy:Bool = true):Void
@@ -1663,31 +1648,19 @@ class PlayState extends MusicBeatState
 		var spr:Dynamic = videoSprites.get(name);
 		if (spr == null) return;
 		videoSprites.remove(name);
-		#if ios
-		if (Std.isOfType(spr, FlxSprite))
-		{
-			remove(spr);
-			spr.destroy();
-		}
-		#else
 		if (Std.isOfType(spr, FlxVideoSprite))
 		{
 			remove(spr);
 			if (destroy) spr.destroy();
 		}
-		#end
 	}
 
 	public function isVideoPlaying(name:String):Bool
 	{
 		var spr:Dynamic = videoSprites.get(name);
 		if (spr == null) return false;
-		#if ios
-		return false;
-		#else
 		if (Std.isOfType(spr, FlxVideoSprite)) return spr.bitmap.playing;
 		return false;
-		#end
 	}
 	#end
 
@@ -1704,14 +1677,6 @@ class PlayState extends MusicBeatState
 	public function startVideo(name:String)
 	{
 		#if VIDEOS_ALLOWED
-		#if ios
-		// iOS: hxvlc/MobileVLCKit native video is NOT integrated yet. Creating a
-		// FlxVideoSprite on iOS crashes natively (missing VLC lib) - skip videos
-		// so songs can start. (TODO: bundle MobileVLCKit and re-enable.)
-		FlxG.log.warn('iOS: video playback disabled (' + name + ')');
-		startAndEnd();
-		return;
-		#end
 		inCutscene = true;
 
 		var filepath:String = Paths.video(name);
