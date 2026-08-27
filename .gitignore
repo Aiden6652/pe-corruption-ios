@@ -1,0 +1,37 @@
+### FNF-Specific
+# File used for the NG API. Should not be shared with others.
+APIStuff.hx
+art/build_x32-officialrelease.bat
+art/build_x64-officialrelease.bat
+art/test_x64-debug-officialrelease.bat
+
+### VS Code
+export/*
+.vscode/*
+.haxelib/
+*.code-workspace
+# Local history which shouldn't be shared.
+.history
+.ionide
+# ! means a file should be added regardless of it it gets ignored prior.
+# Including to allow others to use already set-up configuration tweaked for the project.
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Game assets downloaded from upstream repo at CI time.
+# Keep the V-Slice UI textures we ship in this repo (referenced by Note/StrumNote).
+assets/*
+!assets/shared/
+assets/shared/*
+!assets/shared/images/
+assets/shared/images/*
+!assets/shared/images/VS_*
+
+# Local working artifacts that must NOT be committed.
+# Corruption mod content is fetched from the GitHub release at CI time
+# (merged into assets/), so the extracted copy here is build-only.
+mods-corruption-main/
+# CI build output (signed IPA + inspection tree) is produced by the workflow.
+build_output/

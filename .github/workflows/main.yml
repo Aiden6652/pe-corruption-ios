@@ -1,0 +1,232 @@
+name: Build
+
+on: [push, workflow_dispatch]
+
+jobs:
+  androidBuild:
+    if: false  # 暂时禁用, 专注 iOS
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build_type: [release]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Fetch game assets from upstream (sparse)
+        run: |
+          set -euxo pipefail
+          mkdir -p $GITHUB_WORKSPACE/assets
+          rm -rf /tmp/upstream
+          for i in 1 2 3 4 5; do
+            git clone --depth 1 --filter=blob:none --sparse https://github.com/softbf395/psych-engine-0.6.3-iOS-port.git /tmp/upstream && break
+            echo "upstream clone retry $i"
+            rm -rf /tmp/upstream
+            sleep 15
+          done
+          cd /tmp/upstream
+          git sparse-checkout set assets
+          cp -r assets/. $GITHUB_WORKSPACE/assets/
+          cd $GITHUB_WORKSPACE
+          rm -rf /tmp/upstream
+          ls $GITHUB_WORKSPACE/assets/ | head
+
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@main
+        id: setup-ndk
+        with:
+          ndk-version: r21e
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@main
+        with:
+          distribution: 'zulu'
+          java-version: '18'
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: 4.3.6
+
+      - name: Installing Libraries
+        run: |
+          set -euxo pipefail
+          haxelib setup ~/haxelib
+          haxelib install lime 8.3.0
+          haxelib install openfl 9.2.0
+          haxelib install flixel 5.0.0
+          haxelib install hscript
+          haxelib install flixel-addons 3.0.0
+          haxelib install flixel-ui
+          haxelib install hxcpp
+          haxelib git linc_luajit https://github.com/superpowers04/linc_luajit.git master
+          haxelib git hxvlc https://github.com/MAJigsaw77/hxvlc.git main
+          haxelib git hxShaders https://github.com/JonnycatMeow/hxShaders.git main
+          haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc.git master
+          haxelib install thx.semver
+          haxelib install jsonpatch --skip-dependencies
+          haxelib install jsonpath --skip-dependencies
+          haxelib install thx.core 0.44.0
+          python3 patch_jsonpath.py
+          haxelib list
+
+      - name: Configure Android
+        run: |
+          set -euxo pipefail
+          haxelib run lime setup -alias -y
+          haxelib run lime config ANDROID_SDK $ANDROID_HOME
+          haxelib run lime config ANDROID_NDK_ROOT $ANDROID_NDK_HOME
+          haxelib run lime config JAVA_HOME $JAVA_HOME
+          haxelib run lime config ANDROID_SETUP true
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+
+      - name: Building Android (release)
+        run: |
+          set -euxo pipefail
+          haxelib run lime build android --app-version="4.0.0-${{ github.run_id}}"
+
+      - name: Upload Android Artifact (release)
+        uses: actions/upload-artifact@main
+        with:
+          name: androidBuild-release
+          path: export/release/android/bin/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+  iosBuild:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        build_type: [release]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Fetch base game assets from upstream (sparse)
+        run: |
+          set -euxo pipefail
+          mkdir -p $GITHUB_WORKSPACE/assets
+          rm -rf /tmp/upstream
+          for i in 1 2 3 4 5; do
+            git clone --depth 1 --filter=blob:none --sparse https://github.com/softbf395/psych-engine-0.6.3-iOS-port.git /tmp/upstream && break
+            echo "upstream clone retry $i"
+            rm -rf /tmp/upstream
+            sleep 15
+          done
+          cd /tmp/upstream
+          git sparse-checkout set assets
+          cp -r assets/. $GITHUB_WORKSPACE/assets/
+          cd $GITHUB_WORKSPACE
+          rm -rf /tmp/upstream
+          echo "=== base assets top-level ==="
+          ls $GITHUB_WORKSPACE/assets/ | head
+
+      - name: Fetch + merge Corruption v50 assets (GLSL 120 / AE match)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euxo pipefail
+          # Download the prebuilt Corruption asset bundle (release asset).
+          # Fallback to a direct (public) download if gh auth is unavailable.
+          if ! gh release download corruption-assets-v1 \
+                --repo Aiden6652/pe-corruption-ios \
+                --pattern 'corruption-assets.zip' --clobber; then
+            curl -L -o corruption-assets.zip \
+              "https://github.com/Aiden6652/pe-corruption-ios/releases/download/corruption-assets-v1/corruption-assets.zip"
+          fi
+          ls -lh corruption-assets.zip
+
+          # Extract with backslash -> slash sanitization (the zip was built on
+          # Windows, so entries use '\' separators). Extract directly into
+          # assets/ (overlaying the base assets) and DELETE the zip IMMEDIATELY
+          # to avoid the 2x disk spike that broke the earlier build.
+          python3 - <<'PY'
+          import zipfile, os
+          z = zipfile.ZipFile('corruption-assets.zip')
+          for info in z.infolist():
+              name = info.filename.replace('\\', '/')
+              if not name:
+                  continue
+              if name.endswith('/'):
+                  os.makedirs(os.path.join('assets', name), exist_ok=True)
+                  continue
+              target = os.path.join('assets', name)
+              os.makedirs(os.path.dirname(target), exist_ok=True)
+              with z.open(info) as src, open(target, 'wb') as dst:
+                  dst.write(src.read())
+          PY
+          rm -f corruption-assets.zip
+          echo "=== merged assets top-level ==="
+          ls assets | head -40
+          echo "=== merged assets size ==="
+          du -sh assets
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: 4.3.6
+
+      - name: Installing Libraries
+        run: |
+          set -euxo pipefail
+          haxelib setup ~/haxelib
+          haxelib install lime 8.3.0
+          haxelib install openfl 9.2.0
+          haxelib install flixel 5.0.0
+          haxelib install hscript
+          haxelib install flixel-addons 3.0.0
+          haxelib install flixel-ui
+          haxelib install hxcpp
+          haxelib install polymod --skip-dependencies
+          haxelib git linc_luajit https://github.com/superpowers04/linc_luajit.git master
+          haxelib git hxvlc https://github.com/MAJigsaw77/hxvlc.git main
+          haxelib git hxShaders https://github.com/JonnycatMeow/hxShaders.git main
+          haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc.git master
+          haxelib install thx.semver
+          haxelib install jsonpatch --skip-dependencies
+          haxelib install jsonpath --skip-dependencies
+          haxelib install thx.core 0.44.0
+          python3 patch_jsonpath.py
+          haxelib list
+
+      - name: Building iOS (release)
+        run: |
+          set -euxo pipefail
+          haxelib run lime build ios -nosign --app-version="4.0.0-${{ github.run_id}}" 2>&1 | tail -25
+          APP_PATH=$(find export -name "*.app" -type d | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "=== No .app produced. Listing export: ==="
+            find export -maxdepth 6 -type d 2>/dev/null | head -30
+            exit 1
+          fi
+          echo "APP_PATH=$APP_PATH"
+          codesign --force --sign - "$APP_PATH" || echo 'codesign adhoc failed (expected)'
+
+      - name: Package IPA (unsigned)
+        run: |
+          set -euxo pipefail
+          # Free disk before packaging: drop throwaway build objects.
+          rm -rf export/release/ios/obj
+          APP_NAME="PsychEngine"
+          APP_DIR=$(find export -name "*.app" -type d | head -1)
+          if [ -z "$APP_DIR" ]; then
+            echo "No .app found!"; find export -maxdepth 5 -type d | head -20; exit 1
+          fi
+          echo "APP_DIR=$APP_DIR"
+          mkdir -p Payload
+          cp -r "$APP_DIR" "Payload/${APP_NAME}.app"
+          codesign --force --sign - "Payload/${APP_NAME}.app" || true
+          zip -r "PsychEngine-release.ipa" Payload
+          rm -rf Payload
+          ls -lh *.ipa
+
+      - name: Upload iOS Artifact (release)
+        uses: actions/upload-artifact@main
+        with:
+          name: iosBuild-release
+          path: PsychEngine-release.ipa
+          if-no-files-found: error

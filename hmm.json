@@ -1,0 +1,74 @@
+{
+	"dependencies": [
+		{
+			"name": "lime",
+			"type": "install",
+			"version": "8.3.0"
+		},
+		{
+			"name": "openfl",
+			"type": "install",
+			"version": "9.2.0"
+		},
+		{
+			"name": "flixel",
+			"type": "install",
+			"version": "5.0.0"
+		},
+		{
+			"name": "hscript",
+			"type": "install",
+			"version": null
+		},
+		{
+			"name": "flixel-addons",
+			"type": "install",
+			"version": "3.0.0"
+		},
+		{
+			"name": "flixel-ui",
+			"type": "install",
+			"version": null
+		},
+		{
+			"name": "linc_luajit",
+			"type": "git",
+			"dir": "linc_luajit",
+			"ref": "master",
+			"url": "https://github.com/nebulazorua/linc_luajit.git"
+		},
+		{
+			"name": "hxvlc",
+			"type": "git",
+			"dir": "hxvlc",
+			"ref": "main",
+			"url": "https://github.com/MAJigsaw77/hxvlc.git"
+		},
+		{
+			"name": "hxShaders",
+			"type": "git",
+			"dir": "hxShaders",
+			"ref": "main",
+			"url": "https://github.com/JonnycatMeow/hxShaders.git"
+		},
+		{
+			"name": "discord_rpc",
+			"type": "git",
+			"dir": "discord_rpc",
+			"ref": "master",
+			"url": "https://github.com/Aidan63/linc_discord-rpc.git"
+		},
+		{
+			"name": "extension-androidtools",
+			"type": "git",
+			"dir": "extension-androidtools",
+			"ref": "main",
+			"url": "https://github.com/MaysLastPlay77/extension-androidtools.git"
+		},
+		{
+			"name": "polymod",
+			"type": "install",
+			"version": null
+		}
+	]
+}

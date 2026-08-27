@@ -1,0 +1,12 @@
+*.hx text eol=lf
+*.xml text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.txt text eol=lf
+*.md text eol=lf
+*.hxc text eol=lf
+*.png binary
+*.ogg binary
+*.mp3 binary
+*.mp4 binary
+*.ttf binary
