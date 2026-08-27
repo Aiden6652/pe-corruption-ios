@@ -49,6 +49,12 @@ jobs:
         with:
           haxe-version: 4.3.6
 
+      - name: Cache haxelib libs (185MB incl. hxvlc libvlc - network keeps timing out)
+        uses: actions/cache@v3
+        with:
+          path: ~/haxelib
+          key: haxelib-${{ runner.os }}-v1-20260827
+
       - name: Installing Libraries
         run: |
           set -euxo pipefail
@@ -219,6 +225,12 @@ jobs:
         uses: krdlab/setup-haxe@master
         with:
           haxe-version: 4.3.6
+
+      - name: Cache haxelib libs (185MB incl. hxvlc libvlc - network keeps timing out)
+        uses: actions/cache@v3
+        with:
+          path: ~/haxelib
+          key: haxelib-${{ runner.os }}-v1-20260827
 
       - name: Installing Libraries
         run: |
