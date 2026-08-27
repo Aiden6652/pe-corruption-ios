@@ -105,12 +105,17 @@ class Main extends Sprite
 	
 			// iOS: skip doTheCheck() - it requires assets/mods extracted to Documents
 		// (Android-only behavior), which never happens on iOS -> instant exit + black screen
-		#if !ios
-		SUtil.doTheCheck();
-		#end
+	#if !ios
+	SUtil.doTheCheck();
+	#end
 	
-		ClientPrefs.loadDefaultKeys();
-		addChild(new FlxGame(game.width, game.height, game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate, game.skipSplash, game.startFullscreen));
+	ClientPrefs.loadDefaultKeys();
+	#if ios
+	// Test: iOS shader rendering (FlxRuntimeShader/ShaderFilter) may crash at GPU
+	// render time right before countdown. Force-disable to isolate.
+	ClientPrefs.shaders = false;
+	#end
+	addChild(new FlxGame(game.width, game.height, game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate, game.skipSplash, game.startFullscreen));
 
 		// flixel 5.0.0 removed the zoom arg from FlxGame; default scaleMode is
 		// RatioScaleMode(false) = letterbox (keeps black bars). Match the old
