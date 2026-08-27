@@ -123,7 +123,11 @@
 	<haxelib name="flixel-ui" />
 	<haxelib name="linc_luajit" if="LUA_ALLOWED"/>
 	<haxelib name="hxvlc" if="VIDEOS_ALLOWED"/>
-        <haxelib name="extension-androidtools" if="android"/>
+	<!-- hxvlc ships iOS static libvlc (libvlc_device.a / libvlc_sim.a) but its
+	     include.xml only links the system frameworks - link the static libs here. -->
+	<ndll name="vlc_device" path="${haxelib:hxvlc}/project/vlc/lib/iOS" if="ios && device"/>
+	<ndll name="vlc_sim"    path="${haxelib:hxvlc}/project/vlc/lib/iOS" if="ios && simulator"/>
+	<haxelib name="extension-androidtools" if="android"/>
 	<haxelib name="faxe" if='switch'/>
 	<haxelib name="polymod" />
 	<haxelib name="discord_rpc" if="desktop"/>
