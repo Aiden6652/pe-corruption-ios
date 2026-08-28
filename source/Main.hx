@@ -114,6 +114,9 @@ class Main extends Sprite
 	// Test: iOS shader rendering (FlxRuntimeShader/ShaderFilter) may crash at GPU
 	// render time right before countdown. Force-disable to isolate.
 	ClientPrefs.shaders = false;
+	// school/weeb stages load many big animated textures; iOS RAM is tight -
+	// low quality drops heavy assets (weeb _low variants, etc).
+	ClientPrefs.lowQuality = true;
 	#end
 	addChild(new FlxGame(game.width, game.height, game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate, game.skipSplash, game.startFullscreen));
 

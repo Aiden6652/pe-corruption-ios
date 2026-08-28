@@ -1763,6 +1763,9 @@ class FunkinLua {
 		});
 
 		Lua_helper.add_callback(lua, "makeLuaSprite", function(tag:String, image:String, x:Float, y:Float) {
+			#if ios
+			trace('LUA makeLuaSprite: $tag / $image');
+			#end
 			tag = tag.replace('.', '');
 			resetSpriteTag(tag);
 			var leSprite:ModchartSprite = new ModchartSprite(x, y);
@@ -1775,6 +1778,9 @@ class FunkinLua {
 			leSprite.active = true;
 		});
 		Lua_helper.add_callback(lua, "makeAnimatedLuaSprite", function(tag:String, image:String, x:Float, y:Float, ?spriteType:String = "sparrow") {
+			#if ios
+			trace('LUA makeAnimatedLuaSprite: $tag / $image');
+			#end
 			tag = tag.replace('.', '');
 			resetSpriteTag(tag);
 			var leSprite:ModchartSprite = new ModchartSprite(x, y);
