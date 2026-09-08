@@ -101,7 +101,35 @@ class Song
 
 		if(rawJson == null) {
 			#if sys
-			rawJson = File.getContent(SUtil.getPath() + Paths.json(formattedFolder + '/' + formattedSong)).trim();
+			var sysPath:String = SUtil.getPath() + Paths.json(formattedFolder + '/' + formattedSong);
+			if(!FileSystem.exists(sysPath)) {
+				// iOS/外部资源：难度文件名可能是 canon/safe/normal 等（与代码难度名 hard 不一致），
+				// 找不到时回退尝试其它已知难度名，避免 File.getContent 读空直接崩溃。
+				var knownDiffs:Array<String> = ['hard','canon','safe','normal','easy','erect','nightmare'];
+				var baseName:String = formattedSong;
+				var suffix:String = '';
+				for(d in knownDiffs) {
+					if(formattedSong.endsWith('-' + d)) { baseName = formattedSong.substring(0, formattedSong.length - d.length - 1); suffix = d; break; }
+				}
+				if(suffix != '') {
+					for(d in knownDiffs) {
+						if(d == suffix) continue;
+						var cand:String = SUtil.getPath() + Paths.json(formattedFolder + '/' + baseName + '-' + d);
+						if(FileSystem.exists(cand)) { sysPath = cand; break; }
+					}
+					if(!FileSystem.exists(sysPath)) {
+						var baseCand:String = SUtil.getPath() + Paths.json(formattedFolder + '/' + baseName);
+						if(FileSystem.exists(baseCand)) sysPath = baseCand;
+					}
+				}
+			}
+			if(FileSystem.exists(sysPath)) {
+				rawJson = File.getContent(sysPath).trim();
+			} else {
+				// 所有候选都不存在：返回极简空谱面兜底，避免崩溃（进入游戏会无谱，但菜单不闪退）
+				trace('Song.loadFromJson: 谱面文件缺失，已用空谱面兜底: ' + formattedFolder + '/' + formattedSong);
+				rawJson = '{"song":{"notes":[],"bpm":100,"player1":"bf","player2":"dad","song":"' + formattedSong + '"}}';
+			}
 			#else
 			rawJson = Assets.getText(Paths.json(formattedFolder + '/' + formattedSong)).trim();
 			#end

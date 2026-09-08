@@ -157,6 +157,15 @@ class FreeplayState extends MusicBeatState
 
 		add(scoreText);
 
+		if (songs.length == 0)
+		{
+			var warn:FlxText = new FlxText(0, FlxG.height / 2, FlxG.width, "未找到歌曲数据\n请确认 Documents/assets 已部署", 28);
+			warn.setFormat(Paths.font("vcr.ttf"), 28, FlxColor.WHITE, CENTER);
+			warn.screenCenter();
+			add(warn);
+			super.create();
+			return;
+		}
 		if(curSelected >= songs.length) curSelected = 0;
 		bg.color = songs[curSelected].color;
 		intendedColor = bg.color;

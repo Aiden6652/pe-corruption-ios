@@ -129,6 +129,15 @@ class StoryMenuState extends MusicBeatState
 			}
 		}
 
+		if (loadedWeeks.length == 0)
+		{
+			var warn:FlxText = new FlxText(0, FlxG.height / 2, FlxG.width, "未找到周目数据\n请确认 Documents/assets/weeks 已部署", 28);
+			warn.setFormat(Paths.font("vcr.ttf"), 28, FlxColor.WHITE, CENTER);
+			warn.screenCenter();
+			add(warn);
+			super.create();
+			return;
+		}
 		WeekData.setDirectoryFromWeek(loadedWeeks[0]);
 		var charArray:Array<String> = loadedWeeks[0].weekCharacters;
 		for (char in 0...3)
