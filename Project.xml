@@ -11,7 +11,7 @@
 	<haxedef name="LINC_LUA_RELATIVE_DYNAMIC_LIB"/> <!-- stable luas PUT AFTER FIRST LINE WITH APP NAME AND ETC -->
 
 	<!--The flixel preloader is not accurate in Chrome. You can use it regularly if you embed the swf into a html file
-		or you can set the actual size of your file manually at "FlxPreloaderBase-onUpdate-bytesTotal"-->
+		you can set the actual size of your file manually at "FlxPreloaderBase-onUpdate-bytesTotal"-->
 	<!-- <app preloader="Preloader" resizable="true" /> -->
 	<app preloader="flixel.system.FlxPreloader" />
 
@@ -93,7 +93,6 @@
 	<assets path="assets/week2"      preload="false" />
 	<assets path="assets/week3"      preload="false" />
 	<assets path="assets/week6"      preload="false" />
-	<assets path="assets/glitch.frag" preload="false" />
 
 	<section if="MODS_ALLOWED">
 		<assets path='example_mods' rename='mods' embed='false'/>
@@ -126,7 +125,7 @@
 	<!-- hxvlc ships iOS static libvlc (libvlc_device.a / libvlc_sim.a) but its
 	     include.xml only links the system frameworks - link the static libs here. -->
 	<dependency name="libvlc_device" path="libs/ios/libvlc_device.a" if="ios"/>
-	
+		
 	<haxelib name="extension-androidtools" if="android"/>
 	<haxelib name="faxe" if='switch'/>
 	<haxelib name="polymod" />
@@ -165,7 +164,7 @@
 	<haxedef name="FLX_NO_FOCUS_LOST_SCREEN" />
 	
 	<!-- hxvlc has its own logging; HXC_DEBUG_TRACE (hxCodec-only) removed -->
-	
+		
 	<!--Disable the Flixel core debugger. Automatically gets set whenever you compile in release mode!-->
 	<haxedef name="FLX_NO_DEBUG" unless="debug" />
 
