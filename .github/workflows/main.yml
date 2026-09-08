@@ -192,6 +192,18 @@ jobs:
           if [ -n "$HXVLCLIB" ]; then cp "$HXVLCLIB" libs/ios/; else echo "device lib not found"; fi
           ls -la libs/ios/ || true
 
+      - name: Ensure asset directories exist (corruption deploys via iPad Documents)
+        run: |
+          set -euxo pipefail
+          # corruption 资源现走 iPad Documents 外部部署（SUtil.getPath 运行时读 Documents/assets/），
+          # 不再打包进 ipa。但 Project.xml 声明了一组 assets/* 目录，lime build 阶段会校验其存在，
+          # 缺失即报 "Could not find asset path assets/images"。这里建占位空目录仅满足 build 校验。
+          for d in images data characters music sounds stages scripts shaders weeks week2 week3 week6 songs videos fonts preload; do
+            mkdir -p "assets/$d"
+          done
+          echo "=== assets after ensure ==="
+          ls assets
+
       - name: Building iOS (release)
         run: |
           set -euxo pipefail
