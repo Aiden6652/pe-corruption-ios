@@ -35,12 +35,17 @@ class SUtil
 		#end
 
 		#if ios
-		// OpenFL iOS 把所有 <assets path="assets/..."> 声明打进 .app/assets/assets/（双 assets 嵌套，
-		// 已由 CI 诊断日志确证：PsychEngine.app/assets/assets/weeks/weekList.txt）。
-		// 引擎用 getPath() + ('assets/xxx' | 'mods/xxx') 拼路径：
-		//   getPath() + 'assets/weeks/x'  -> .app/assets/assets/weeks/x  (命中)
-		//   getPath() + 'mods/x'          -> .app/assets/mods/x          (example_mods rename=mods，单层，命中)
-		// 所以 iOS 返回 bundle 的 assets/ 目录；可写数据(saves/crash)走 getSavePath()。
+		// corruption 资源由用户部署在 iPad Documents/assets/（可写，几 G 不打包进 ipa）。
+		// 引擎用 getPath() + ('assets/xxx' | 'mods/xxx') 拼路径，所以此处返回资源父目录：
+		//   Documents/assets/ 存在 -> 返回 Documents/，Paths 自拼 'assets/...' 命中 Documents/assets/...
+		//   Documents/assets 不存在 -> 回退 bundle 只读 assets（仅 base PE，无 corruption）。
+		var docs:String = LimeSystem.documentsDirectory;
+		if (docs != null && docs.length > 0)
+		{
+			if (!docs.endsWith('/')) docs += '/';
+			if (FileSystem.exists(docs + 'assets'))
+				return docs;
+		}
 		var p:String = LimeSystem.applicationDirectory;
 		if (p != null && p.length > 0 && !p.endsWith('/'))
 			p += '/';
