@@ -141,8 +141,10 @@ jobs:
           # Also: base vanilla weeks (tutorial/week1..7 .json from the upstream
           # sparse clone) stay in assets/weeks/ and get picked up by WeekData's
           # directory scan -> vanilla songs show first. Delete them.
-          cd assets/weeks
-          find . -maxdepth 1 -name '*.json' ! -name 'story*.json' -delete
+          # 容错：corruption 资源改为 iPad Documents 外部部署，包内 assets/weeks 可能为空/不存在，
+          # 不再从 release 下载，故 cd 前确保目录存在；find 无匹配也不许中断构建。
+          cd assets/weeks 2>/dev/null || { mkdir -p assets/weeks && cd assets/weeks; }
+          find . -maxdepth 1 -name '*.json' ! -name 'story*.json' -delete 2>/dev/null || true
           printf 'story0\nstory1\nstory2\nstory3\nstory4\nstory5\nstory6\nstory7\nstory8\nstory9\nstory9z\n' > weekList.txt
           echo "=== assets/weeks now ==="
           ls
