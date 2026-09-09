@@ -325,15 +325,36 @@ class Note extends FlxSprite
 		}
 	}
 
+	function hasFramePrefix(p:String):Bool {
+		if(frames == null || frames.frames == null || frames.frames.length < 1) return false;
+		for(fr in frames.frames) {
+			if(fr.name != null && fr.name.startsWith(p)) return true;
+		}
+		return false;
+	}
+
+	function addAnimSafe(name:String, prefix:String) {
+		// 帧存在才注册；缺失时退回该列基础帧，保证长条/滚动动画播放永不因缺帧崩溃
+		if(hasFramePrefix(prefix)) {
+			animation.addByPrefix(name, prefix);
+		} else if(hasFramePrefix(colArray[noteData] + '0')) {
+			animation.addByPrefix(name, colArray[noteData] + '0');
+		} else if(hasFramePrefix('0')) {
+			animation.addByPrefix(name, '0');
+		} else if(frames != null && frames.frames.length > 0 && frames.frames[0].name != null) {
+			animation.addByPrefix(name, frames.frames[0].name.substring(0, 1));
+		}
+	}
+
 	function loadNoteAnims() {
-		// V-Slice style: direction prefixes (noteLeft/noteDown/noteUp/noteRight) with 0001 frame suffix
-		animation.addByPrefix(colArray[noteData] + 'Scroll', colArray[noteData] + '0');
+		// Corruption 音符贴图为 Psych 命名（purple0000/blue0000...），优先按此加载
+		addAnimSafe(colArray[noteData] + 'Scroll', colArray[noteData] + '0');
 
 		if (isSustainNote)
 		{
-			animation.addByPrefix('purpleholdend', 'pruple end hold'); // ?????
-			animation.addByPrefix(colArray[noteData] + 'holdend', colArray[noteData] + ' hold end');
-			animation.addByPrefix(colArray[noteData] + 'hold', colArray[noteData] + ' hold piece');
+			addAnimSafe('purpleholdend', 'pruple end hold');
+			addAnimSafe(colArray[noteData] + 'holdend', colArray[noteData] + ' hold end');
+			addAnimSafe(colArray[noteData] + 'hold', colArray[noteData] + ' hold piece');
 		}
 
 		setGraphicSize(Std.int(width * 0.7));
