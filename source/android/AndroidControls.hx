@@ -17,9 +17,8 @@ class Config {
 	}
 
 	public function getcontrolmode():Int {
-		// Force HITBOX (V-Slice style bottom 4-arrow layout). Ignore any stale
-		// saved buttonsmode from earlier builds that used the piano-key virtual pad.
-		return 4;
+		if (save.data.buttonsmode != null) return save.data.buttonsmode[0];
+		return 0; // 默认 VIRTUALPAD_RIGHT（右侧虚拟方向键）
 	}
 
 	public function setcontrolmode(mode:Int = 0):Int {
