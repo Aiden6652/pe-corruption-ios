@@ -259,7 +259,11 @@ class Note extends FlxSprite
 		if(texture.length < 1) {
 			skin = PlayState.SONG.arrowSkin;
 			if(skin == null || skin.length < 1) {
-				skin = 'VS_note_assets';
+				skin = 'NOTE_assets';
+			}
+			// Corruption 谱面 arrowSkin 常写 'NOTE_asset'（比实际贴图文件名 NOTE_assets 少个 s）
+			if(skin == 'NOTE_asset' || skin == 'note_asset') {
+				skin = 'NOTE_assets';
 			}
 		}
 
@@ -323,7 +327,7 @@ class Note extends FlxSprite
 
 	function loadNoteAnims() {
 		// V-Slice style: direction prefixes (noteLeft/noteDown/noteUp/noteRight) with 0001 frame suffix
-		animation.addByPrefix(colArray[noteData] + 'Scroll', vSliceCol[noteData] + '0');
+		animation.addByPrefix(colArray[noteData] + 'Scroll', colArray[noteData] + '0');
 
 		if (isSustainNote)
 		{
