@@ -224,6 +224,13 @@ jobs:
             exit 1
           fi
           echo "APP_PATH=$APP_PATH"
+          # 启用文件共享：让 iPad 文件 App 能看到 App 的 Documents（部署 corruption 资源 + 取 trace.log）
+          /usr/libexec/PlistBuddy -c "Add :UIFileSharingEnabled bool true" "$APP_PATH/Info.plist" 2>/dev/null || \
+            /usr/libexec/PlistBuddy -c "Set :UIFileSharingEnabled true" "$APP_PATH/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :LSSupportsOpeningDocumentsInPlace bool true" "$APP_PATH/Info.plist" 2>/dev/null || \
+            /usr/libexec/PlistBuddy -c "Set :LSSupportsOpeningDocumentsInPlace true" "$APP_PATH/Info.plist"
+          /usr/libexec/PlistBuddy -c "Print :UIFileSharingEnabled" "$APP_PATH/Info.plist"
+          /usr/libexec/PlistBuddy -c "Print :LSSupportsOpeningDocumentsInPlace" "$APP_PATH/Info.plist"
           codesign --force --sign - "$APP_PATH" || echo 'codesign adhoc failed (expected)'
 
       - name: Diagnostic - packaged .app layout
