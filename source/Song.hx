@@ -103,37 +103,40 @@ class Song
 			#if sys
 			var sysPath:String = SUtil.getPath() + Paths.json(formattedFolder + '/' + formattedSong);
 			if(!FileSystem.exists(sysPath)) {
-				// Corruption chart files keep the ORIGINAL song-name casing (e.g. Blood-Moon-hard.json),
-				// while Paths.formatToSongPath lowercases (blood-moon-hard.json). So also probe the raw
-				// (un-lowercased) folder + jsonInput casing before giving up.
+				// Corruption 谱面文件名保留原始大小写（如 Blood-Moon-hard.json），
+				// 而 formatToSongPath 会转小写，所以再按原始大小写 folder+jsonInput 试一次
 				var rawPath:String = SUtil.getPath() + Paths.json(folder + '/' + jsonInput);
 				if(FileSystem.exists(rawPath)) {
 					sysPath = rawPath;
 				} else {
-					// iOS/外部资源：难度文件名可能是 canon/safe/normal 等（与代码难度名 hard 不一致），
-					// 找不到时回退尝试其它已知难度名，避免 File.getContent 读空直接崩溃。
+					// 难度名可能是 canon/safe/normal（与代码难度 hard 不一致）时回退尝试
 					var knownDiffs:Array<String> = ['hard','canon','safe','normal','easy','erect','nightmare'];
 					var baseName:String = formattedSong;
 					var suffix:String = '';
 					for(d in knownDiffs) {
-						if(formattedSong.endsWith('-' + d)) { baseName = formattedSong.substring(0, formattedSong.length - d.length - 1); suffix = d; break; }
+						if(formattedSong.endsWith('-' + d)) {
+							baseName = formattedSong.substring(0, formattedSong.length - d.length - 1);
+							suffix = d;
+							break;
+						}
 					}
 					if(suffix != '') {
 						for(d in knownDiffs) {
 							if(d == suffix) continue;
 							var cand:String = SUtil.getPath() + Paths.json(formattedFolder + '/' + baseName + '-' + d);
-						if(FileSystem.exists(cand)) { sysPath = cand; break; }
-					}
-					if(!FileSystem.exists(sysPath)) {
-						var baseCand:String = SUtil.getPath() + Paths.json(formattedFolder + '/' + baseName);
-						if(FileSystem.exists(baseCand)) sysPath = baseCand;
+							if(FileSystem.exists(cand)) { sysPath = cand; break; }
+						}
+						if(!FileSystem.exists(sysPath)) {
+							var baseCand:String = SUtil.getPath() + Paths.json(formattedFolder + '/' + baseName);
+							if(FileSystem.exists(baseCand)) sysPath = baseCand;
+						}
 					}
 				}
 			}
 			if(FileSystem.exists(sysPath)) {
 				rawJson = File.getContent(sysPath).trim();
 			} else {
-				// 所有候选都不存在：返回极简空谱面兜底，避免崩溃（进入游戏会无谱，但菜单不闪退）
+				// 所有候选都不存在：返回极简空谱面兜底，避免 File.getContent 读空崩溃
 				trace('Song.loadFromJson: 谱面文件缺失，已用空谱面兜底: ' + formattedFolder + '/' + formattedSong);
 				rawJson = '{"song":{"notes":[],"bpm":100,"player1":"bf","player2":"dad","song":"' + formattedSong + '"}}';
 			}
