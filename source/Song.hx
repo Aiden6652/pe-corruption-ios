@@ -101,43 +101,43 @@ class Song
 
 		if(rawJson == null) {
 			#if sys
-			var sysPath:String = SUtil.getPath() + Paths.json(formattedFolder + '/' + formattedSong);
-			if(!FileSystem.exists(sysPath)) {
-				// Corruption 谱面文件名保留原始大小写（如 Blood-Moon-hard.json），
-				// 而 formatToSongPath 会转小写，所以再按原始大小写 folder+jsonInput 试一次
-				var rawPath:String = SUtil.getPath() + Paths.json(folder + '/' + jsonInput);
-				if(FileSystem.exists(rawPath)) {
-					sysPath = rawPath;
-				} else {
-					// 难度名可能是 canon/safe/normal（与代码难度 hard 不一致）时回退尝试
-					var knownDiffs:Array<String> = ['hard','canon','safe','normal','easy','erect','nightmare'];
-					var baseName:String = formattedSong;
-					var suffix:String = '';
-					for(d in knownDiffs) {
-						if(formattedSong.endsWith('-' + d)) {
-							baseName = formattedSong.substring(0, formattedSong.length - d.length - 1);
-							suffix = d;
-							break;
-						}
-					}
-					if(suffix != '') {
-						for(d in knownDiffs) {
-							if(d == suffix) continue;
-							var cand:String = SUtil.getPath() + Paths.json(formattedFolder + '/' + baseName + '-' + d);
-							if(FileSystem.exists(cand)) { sysPath = cand; break; }
-						}
-						if(!FileSystem.exists(sysPath)) {
-							var baseCand:String = SUtil.getPath() + Paths.json(formattedFolder + '/' + baseName);
-							if(FileSystem.exists(baseCand)) sysPath = baseCand;
-						}
-					}
+			// 收集候选路径逐个尝试（大小写/难度回退），全程 try-catch，绝不向调用方抛异常
+			var pathsToTry:Array<String> = [];
+			pathsToTry.push(SUtil.getPath() + Paths.json(formattedFolder + '/' + formattedSong));
+			// Corruption 文件名/目录保留原始大小写（如 Blood-Moon/Blood-Moon-canon.json）
+			pathsToTry.push(SUtil.getPath() + Paths.json(folder + '/' + jsonInput));
+			var knownDiffs:Array<String> = ['hard','canon','safe','normal','easy','erect','nightmare'];
+			var baseName:String = formattedSong;
+			var suffix:String = '';
+			for(d in knownDiffs) {
+				if(formattedSong.endsWith('-' + d)) {
+					baseName = formattedSong.substring(0, formattedSong.length - d.length - 1);
+					suffix = d;
+					break;
 				}
 			}
-			if(FileSystem.exists(sysPath)) {
-				rawJson = File.getContent(sysPath).trim();
-			} else {
-				// 所有候选都不存在：返回极简空谱面兜底，避免 File.getContent 读空崩溃
-				trace('Song.loadFromJson: 谱面文件缺失，已用空谱面兜底: ' + formattedFolder + '/' + formattedSong);
+			if(suffix != '') {
+				for(d2 in knownDiffs) {
+					if(d2 == suffix) continue;
+					pathsToTry.push(SUtil.getPath() + Paths.json(formattedFolder + '/' + baseName + '-' + d2));
+					pathsToTry.push(SUtil.getPath() + Paths.json(folder + '/' + baseName + '-' + d2));
+				}
+				pathsToTry.push(SUtil.getPath() + Paths.json(formattedFolder + '/' + baseName));
+				pathsToTry.push(SUtil.getPath() + Paths.json(folder + '/' + baseName));
+			}
+			for(c in pathsToTry) {
+				if(c == null) continue;
+				try {
+					if(FileSystem.exists(c)) {
+						rawJson = File.getContent(c).trim();
+						break;
+					}
+				} catch(e:Dynamic) {
+					trace('Song.loadFromJson: 读取失败已跳过: ' + c);
+				}
+			}
+			if(rawJson == null) {
+				trace('Song.loadFromJson: 谱面缺失，已用空谱面兜底: ' + formattedFolder + '/' + formattedSong);
 				rawJson = '{"song":{"notes":[],"bpm":100,"player1":"bf","player2":"dad","song":"' + formattedSong + '"}}';
 			}
 			#else
