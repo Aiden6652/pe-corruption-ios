@@ -49,7 +49,7 @@ class StrumNote extends FlxSprite
 		return false;
 	}
 
-	function addAnimProbe(name:String, cands:Array<String>, rate:Float = 30, looped:Bool = true):Void {
+	function addAnimProbe(name:String, cands:Array<String>, rate:Int = 30, looped:Bool = true):Void {
 		for(p in cands) {
 			if(hasFramePrefix(p)) {
 				animation.addByPrefix(name, p, rate, looped);
@@ -106,7 +106,7 @@ class StrumNote extends FlxSprite
 			// 一个都匹配不到时一个动画都不会注册 -> curAnim 恒为 null ->
 			// 精灵只画第 0 帧(arrowDOWN0000) -> 4 个键全变成相同的下箭头。
 			// 这里两套命名都探测，确保一定注册上。
-			var idx:Int = Math.abs(noteData) % 4;
+			var idx:Int = Std.int(Math.abs(noteData)) % 4;
 			var dirUp:Array<String> = ['Left', 'Down', 'Up', 'Right'];
 			var dirLow:Array<String> = ['left', 'down', 'up', 'right'];
 			var d:String = dirUp[idx];
