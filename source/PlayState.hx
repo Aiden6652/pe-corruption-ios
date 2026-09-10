@@ -2999,7 +2999,7 @@ class PlayState extends MusicBeatState
 			case 'tank':
 				moveTank(elapsed);
 			case 'schoolEvil':
-				if(!ClientPrefs.lowQuality && bgGhouls.animation.curAnim.finished) {
+				if(!ClientPrefs.lowQuality && bgGhouls.animation.curAnim != null && bgGhouls.animation.curAnim.finished) {
 					bgGhouls.visible = false;
 				}
 			case 'philly':
@@ -3033,7 +3033,7 @@ class PlayState extends MusicBeatState
 			case 'limo':
 				if(!ClientPrefs.lowQuality) {
 					grpLimoParticles.forEach(function(spr:BGSprite) {
-						if(spr.animation.curAnim.finished) {
+						if(spr.animation.curAnim != null && spr.animation.curAnim.finished) {
 							spr.kill();
 							grpLimoParticles.remove(spr, true);
 							spr.destroy();
@@ -4500,7 +4500,7 @@ class PlayState extends MusicBeatState
 			}
 
 			var spr:StrumNote = playerStrums.members[key];
-			if(strumsBlocked[key] != true && spr != null && spr.animation.curAnim.name != 'confirm')
+			if(strumsBlocked[key] != true && spr != null && spr.animation.curAnim != null && spr.animation.curAnim.name != 'confirm')
 			{
 				spr.playAnim('pressed');
 				spr.resetAnim = 0;
