@@ -1335,6 +1335,15 @@ class PlayState extends MusicBeatState
 
 		super.create();
 
+		// === 临时诊断：构建标记（确认设备上跑的是哪一版）===
+		var btagBg:FlxSprite = new FlxSprite(0, 0).makeGraphic(340, 32, FlxColor.BLACK);
+		btagBg.scrollFactor.set();
+		add(btagBg);
+		var btag:FlxText = new FlxText(6, 5, 0, 'BUILD FIX3 2413e9e8', 20);
+		btag.scrollFactor.set();
+		btag.color = FlxColor.RED;
+		add(btag);
+
 		cacheCountdown();
 		cachePopUpScore();
 		for (key => type in precacheList)
