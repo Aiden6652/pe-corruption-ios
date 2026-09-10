@@ -106,7 +106,7 @@ class Note extends FlxSprite
 
 	public function resizeByRatio(ratio:Float) //haha funny twitter shit
 	{
-		if(isSustainNote && !animation.curAnim.name.endsWith('end'))
+		if(isSustainNote && animation.curAnim != null && !animation.curAnim.name.endsWith('end'))
 		{
 			scale.y *= ratio;
 			updateHitbox();
@@ -243,6 +243,20 @@ class Note extends FlxSprite
 			}
 		} else if(!isSustainNote) {
 			earlyHitMult = 1;
+		}
+
+		// iOS 兜底：长音符动画注册失败时强制播放任一已有动画，防止后续 curAnim 空指针
+		if (isSustainNote && animation.curAnim == null)
+		{
+			var fallbackAnims:Array<String> = [colArray[noteData % 4] + 'holdend', colArray[noteData % 4] + 'hold', colArray[noteData % 4] + 'Scroll'];
+			for (n in fallbackAnims)
+			{
+				if (animation.getByName(n) != null)
+				{
+					animation.play(n);
+					break;
+				}
+			}
 		}
 		x += offsetX;
 	}
