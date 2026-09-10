@@ -262,13 +262,14 @@ jobs:
           mkdir -p Payload
           cp -r "$APP_DIR" "Payload/${APP_NAME}.app"
           codesign --force --sign - "Payload/${APP_NAME}.app" || true
-          zip -r "PsychEngine-release.ipa" Payload
+          SHORT_SHA=$(echo "$GITHUB_SHA" | cut -c1-8)
+          zip -r "PsychEngine-${SHORT_SHA}-run${GITHUB_RUN_ID}.ipa" Payload
           rm -rf Payload
           ls -lh *.ipa
 
       - name: Upload iOS Artifact (release)
         uses: actions/upload-artifact@main
         with:
-          name: iosBuild-release
-          path: PsychEngine-release.ipa
+          name: iosBuild-${{ github.run_id }}
+          path: PsychEngine-*.ipa
           if-no-files-found: error
