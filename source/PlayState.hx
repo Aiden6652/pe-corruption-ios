@@ -3191,7 +3191,7 @@ class PlayState extends MusicBeatState
 							//Jesus fuck this took me so much mother fucking time AAAAAAAAAA
 							if(strumScroll && daNote.isSustainNote)
 							{
-								if (daNote.animation.curAnim.name.endsWith('end')) {
+								if (daNote.animation.curAnim != null && daNote.animation.curAnim.name.endsWith('end')) {
 									daNote.y += 10.5 * (fakeCrochet / 400) * 1.5 * songSpeed + (46 * (songSpeed - 1));
 									daNote.y -= 46 * (1 - (fakeCrochet / 600)) * songSpeed;
 									if(PlayState.isPixelStage) {
@@ -4353,7 +4353,7 @@ class PlayState extends MusicBeatState
 			}
 
 			var spr:StrumNote = playerStrums.members[key];
-			if(strumsBlocked[key] != true && spr != null && spr.animation.curAnim.name != 'confirm')
+			if(strumsBlocked[key] != true && spr != null && spr.animation.curAnim != null && spr.animation.curAnim.name != 'confirm')
 			{
 				spr.playAnim('pressed');
 				spr.resetAnim = 0;
@@ -4648,7 +4648,7 @@ class PlayState extends MusicBeatState
 			vocals.volume = 1;
 
 		var time:Float = 0.15;
-		if(note.isSustainNote && !note.animation.curAnim.name.endsWith('end')) {
+		if(note.isSustainNote && (note.animation.curAnim == null || !note.animation.curAnim.name.endsWith('end'))) {
 			time += 0.15;
 		}
 		StrumPlayAnim(true, Std.int(Math.abs(note.noteData)), time);
@@ -4744,7 +4744,7 @@ class PlayState extends MusicBeatState
 
 			if(cpuControlled) {
 				var time:Float = 0.15;
-				if(note.isSustainNote && !note.animation.curAnim.name.endsWith('end')) {
+				if(note.isSustainNote && (note.animation.curAnim == null || !note.animation.curAnim.name.endsWith('end'))) {
 					time += 0.15;
 				}
 				StrumPlayAnim(false, Std.int(Math.abs(note.noteData)), time);
