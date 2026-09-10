@@ -17,13 +17,21 @@ class CrashState extends MusicBeatState
 	{
 		super.create();
 
-		var bg = new FlxSprite().loadGraphic(Paths.image('crash'));
+		// 纯黑底，不依赖任何图片资源（原来加载 Paths.image('crash')，资源缺失时这里会二次崩溃）
+		var bg = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
+		bg.scrollFactor.set();
 		add(bg);
 
-		var errorMessage:FlxText = new FlxText(12, FlxG.height - 44, 0, SUtil.errMsg, 12);
+		var title:FlxText = new FlxText(12, 10, FlxG.width - 24, "CRASH - SCREENSHOT THIS SCREEN", 24);
+		title.scrollFactor.set();
+		title.color = FlxColor.RED;
+		add(title);
+
+		// 用 flixel 内置字体（nokiafc22），保证一定渲染得出来
+		var errorMessage:FlxText = new FlxText(12, 52, FlxG.width - 24, Std.string(SUtil.errMsg), 18);
 		errorMessage.scrollFactor.set();
-		errorMessage.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		errorMessage.antialiasing = ClientPrefs.globalAntialiasing;
+		errorMessage.color = FlxColor.WHITE;
+		errorMessage.wordWrap = true;
 		add(errorMessage);
 
 	}
