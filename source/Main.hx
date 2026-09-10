@@ -60,6 +60,8 @@ class Main extends Sprite
 			}
 			catch (e:Dynamic) {}
 		};
+		// 构建标记：用于确认设备上实际运行的版本
+		trace('=== BUILD MARKER: feat-diag-1 (a711b00a+hardening) ===');
 		#end
 		Lib.current.addChild(new Main());
 	}
