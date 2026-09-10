@@ -220,6 +220,24 @@ class Character extends FlxSprite
 		recalculateDanceIdle();
 		dance();
 
+		// iOS 兜底：无论角色 JSON 与图集是否匹配，都保证 animation.curAnim 不为 null。
+		// 模组的 Lua 脚本（psychShit.lua / The_OG_Funkin_UI_4.lua 等）每帧都会读
+		// X.animation.curAnim.name 且没有判空，curAnim 为 null 时随时可能爆空指针。
+		if(animation.curAnim == null)
+		{
+			var tryNames:Array<String> = ['idle', 'danceLeft', 'danceRight', 'singLEFT', 'singRIGHT', 'singUP', 'singDOWN'];
+			for(n in tryNames) {
+				if(animation.getByName(n) != null) {
+					animation.play(n);
+					break;
+				}
+			}
+			if(animation.curAnim == null && frames != null && frames.frames != null && frames.frames.length > 0) {
+				animation.add('__fallback', [0]);
+				animation.play('__fallback');
+			}
+		}
+
 		if (isPlayer)
 		{
 			flipX = !flipX;
