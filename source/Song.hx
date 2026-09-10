@@ -101,7 +101,25 @@ class Song
 
 		if(rawJson == null) {
 			#if sys
-			rawJson = File.getContent(SUtil.getPath() + Paths.json(formattedFolder + '/' + formattedSong)).trim();
+			// iOS 上谱面文件可能不存在（例如 Blood-Moon 没有 -hard 谱面），
+			// 原来裸 File.getContent 会直接抛异常崩溃；这里改为候选路径 + try/catch 兜底。
+			var diffList:Array<String> = ['', 'hard', 'normal', 'easy', 'erect', 'nightmare'];
+			for(diff in diffList) {
+				var fname:String = (diff == '') ? formattedSong : (formattedSong + '-' + diff);
+				var cand:String = SUtil.getPath() + Paths.json(formattedFolder + '/' + fname);
+				try {
+					if(FileSystem.exists(cand)) {
+						rawJson = File.getContent(cand).trim();
+						if(rawJson != null && rawJson.length > 0) break;
+					}
+				} catch(e:Dynamic) {
+					trace('Song.loadFromJson: 读取失败已跳过 ' + cand);
+				}
+			}
+			if(rawJson == null) {
+				rawJson = '{"song":"' + formattedSong + '","notes":[],"bpm":100,"needsVoices":false,"speed":1,"player1":"bf","player2":"dad","stage":"stage"}';
+				trace('Song.loadFromJson: 谱面缺失，使用空谱面兜底 ' + formattedFolder + '/' + formattedSong);
+			}
 			#else
 			rawJson = Assets.getText(Paths.json(formattedFolder + '/' + formattedSong)).trim();
 			#end
