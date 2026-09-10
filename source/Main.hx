@@ -182,6 +182,9 @@ class Main extends Sprite
 			}
 	
 			errMsg += e.error;
+		// 原来漏了这句，导致 CrashState 显示为空；补上以便崩溃时直接看屏幕
+		SUtil.errMsg = errMsg;
+		try { haxe.Log.trace(errMsg); } catch (err2:Dynamic) {} // 同时写进 trace.log
 	
 		if (!FileSystem.exists(SUtil.getSavePath() + "crash"))
 			FileSystem.createDirectory(SUtil.getSavePath() + "crash");
