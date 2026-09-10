@@ -136,7 +136,7 @@ class StrumNote extends FlxSprite
 			}
 		}
 		//if(animation.curAnim != null){ //my bad i was upset
-		if(animation.curAnim.name == 'confirm' && !PlayState.isPixelStage) {
+		if(animation.curAnim != null && animation.curAnim.name == 'confirm' && !PlayState.isPixelStage) {
 			centerOrigin();
 		//}
 		}
