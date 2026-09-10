@@ -41,6 +41,23 @@ class StrumNote extends FlxSprite
 		scrollFactor.set();
 	}
 
+	function hasFramePrefix(p:String):Bool {
+		if(p == null || p == '' || frames == null || frames.frames == null) return false;
+		for(fr in frames.frames) {
+			if(fr != null && fr.name != null && fr.name.startsWith(p)) return true;
+		}
+		return false;
+	}
+
+	function addAnimProbe(name:String, cands:Array<String>, rate:Float = 30, looped:Bool = true):Void {
+		for(p in cands) {
+			if(hasFramePrefix(p)) {
+				animation.addByPrefix(name, p, rate, looped);
+				return;
+			}
+		}
+	}
+
 	public function reloadNote()
 	{
 		var lastAnim:String = null;
@@ -83,33 +100,29 @@ class StrumNote extends FlxSprite
 		else
 		{
 			frames = Paths.getSparrowAtlas(texture);
-			animation.addByPrefix('green', 'staticUp');
-			animation.addByPrefix('blue', 'staticDown');
-			animation.addByPrefix('purple', 'staticLeft');
-			animation.addByPrefix('red', 'staticRight');
+
+			// v50 的 atlas 是经典命名(arrowLEFT0000 / left press0000 / left confirm0000)，
+			// 原代码只认 V-Slice 命名(staticLeft/pressLeft/confirmLeft)，
+			// 一个都匹配不到时一个动画都不会注册 -> curAnim 恒为 null ->
+			// 精灵只画第 0 帧(arrowDOWN0000) -> 4 个键全变成相同的下箭头。
+			// 这里两套命名都探测，确保一定注册上。
+			var idx:Int = Math.abs(noteData) % 4;
+			var dirUp:Array<String> = ['Left', 'Down', 'Up', 'Right'];
+			var dirLow:Array<String> = ['left', 'down', 'up', 'right'];
+			var d:String = dirUp[idx];
+			var dl:String = dirLow[idx];
+
+			addAnimProbe('purple', ['staticLeft', 'arrowLEFT']);
+			addAnimProbe('blue', ['staticDown', 'arrowDOWN']);
+			addAnimProbe('green', ['staticUp', 'arrowUP']);
+			addAnimProbe('red', ['staticRight', 'arrowRIGHT']);
+
+			addAnimProbe('static', ['static' + d, 'arrow' + d.toUpperCase(), dl]);
+			addAnimProbe('pressed', ['press' + d, dl + ' press'], 24, false);
+			addAnimProbe('confirm', ['confirm' + d, dl + ' confirm'], 24, false);
 
 			antialiasing = ClientPrefs.globalAntialiasing;
 			setGraphicSize(Std.int(width * 0.7));
-
-			switch (Math.abs(noteData) % 4)
-			{
-				case 0:
-					animation.addByPrefix('static', 'staticLeft');
-					animation.addByPrefix('pressed', 'pressLeft', 24, false);
-					animation.addByPrefix('confirm', 'confirmLeft', 24, false);
-				case 1:
-					animation.addByPrefix('static', 'staticDown');
-					animation.addByPrefix('pressed', 'pressDown', 24, false);
-					animation.addByPrefix('confirm', 'confirmDown', 24, false);
-				case 2:
-					animation.addByPrefix('static', 'staticUp');
-					animation.addByPrefix('pressed', 'pressUp', 24, false);
-					animation.addByPrefix('confirm', 'confirmUp', 24, false);
-				case 3:
-					animation.addByPrefix('static', 'staticRight');
-					animation.addByPrefix('pressed', 'pressRight', 24, false);
-					animation.addByPrefix('confirm', 'confirmRight', 24, false);
-			}
 		}
 		updateHitbox();
 
