@@ -106,7 +106,7 @@ class Note extends FlxSprite
 
 	public function resizeByRatio(ratio:Float) //haha funny twitter shit
 	{
-		if(isSustainNote && !animation.curAnim.name.endsWith('end'))
+		if(isSustainNote && animation.curAnim != null && !animation.curAnim.name.endsWith('end'))
 		{
 			scale.y *= ratio;
 			updateHitbox();
@@ -192,6 +192,7 @@ class Note extends FlxSprite
 				var animToPlay:String = '';
 				animToPlay = colArray[noteData % 4];
 				animation.play(animToPlay + 'Scroll');
+				if(animation.curAnim == null) ensureAnyAnim();
 			}
 		}
 
@@ -211,6 +212,7 @@ class Note extends FlxSprite
 			copyAngle = false;
 
 			animation.play(colArray[noteData % 4] + 'holdend');
+			if(animation.curAnim == null) ensureAnyAnim();
 
 			updateHitbox();
 
@@ -321,15 +323,56 @@ class Note extends FlxSprite
 		}
 	}
 
+	// 帧前缀探测：兼容 V-Slice(noteLeft0000) 与经典(purple0000) 两套命名。
+	// 注册失败会让 animation.curAnim 一直是 null —— 普通音符看不出来（&& 短路），
+	// 长音符在 PlayState.opponentNoteHit/goodNoteHit 里读 curAnim.name 直接空指针崩溃。
+	function hasFramePrefix(p:String):Bool {
+		if(p == null || p == '' || frames == null || frames.frames == null) return false;
+		for(fr in frames.frames) {
+			if(fr != null && fr.name != null && fr.name.startsWith(p)) return true;
+		}
+		return false;
+	}
+
+	function addAnimSafe(name:String, prefixes:Array<String>):Bool {
+		for(p in prefixes) {
+			if(hasFramePrefix(p)) {
+				animation.addByPrefix(name, p);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// 兜底：保证 curAnim 绝不为 null
+	function ensureAnyAnim():Void {
+		if(animation.curAnim != null) return;
+		var idx:Int = noteData % 4;
+		if(idx < 0) idx = 0;
+		var order:Array<String> = [colArray[idx] + 'holdend', colArray[idx] + 'hold', colArray[idx] + 'Scroll'];
+		for(n in order) {
+			if(animation.getByName(n) != null) {
+				animation.play(n);
+				return;
+			}
+		}
+		if(frames != null && frames.frames != null && frames.frames.length > 0) {
+			animation.add('__fallback', [0]);
+			animation.play('__fallback');
+		}
+	}
+
 	function loadNoteAnims() {
-		// V-Slice style: direction prefixes (noteLeft/noteDown/noteUp/noteRight) with 0001 frame suffix
-		animation.addByPrefix(colArray[noteData] + 'Scroll', vSliceCol[noteData] + '0');
+		var idx:Int = noteData % 4;
+		if(idx < 0) idx = 0;
+		// v50 的 NOTE_assets/NOTE_asset 用的是经典命名(purple0000)，没有 noteLeft0 帧
+		addAnimSafe(colArray[idx] + 'Scroll', [vSliceCol[idx] + '0', colArray[idx] + '0', colArray[idx]]);
 
 		if (isSustainNote)
 		{
-			animation.addByPrefix('purpleholdend', 'pruple end hold'); // ?????
-			animation.addByPrefix(colArray[noteData] + 'holdend', colArray[noteData] + ' hold end');
-			animation.addByPrefix(colArray[noteData] + 'hold', colArray[noteData] + ' hold piece');
+			addAnimSafe('purpleholdend', ['pruple end hold', 'purple hold end']); // ?????
+			addAnimSafe(colArray[idx] + 'holdend', [colArray[idx] + ' hold end', 'pruple end hold', colArray[idx] + 'hold end']);
+			addAnimSafe(colArray[idx] + 'hold', [colArray[idx] + ' hold piece', colArray[idx] + 'hold piece', colArray[idx] + ' hold']);
 		}
 
 		setGraphicSize(Std.int(width * 0.7));
