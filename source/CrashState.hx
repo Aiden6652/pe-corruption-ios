@@ -28,7 +28,7 @@ class CrashState extends MusicBeatState
 		add(title);
 
 		// 用 flixel 内置字体（nokiafc22），保证一定渲染得出来
-		var errorMessage:FlxText = new FlxText(12, 52, FlxG.width - 24, Std.string(SUtil.errMsg), 18);
+		var errorMessage:FlxText = new FlxText(12, 52, FlxG.width - 24, "BUILD FIX3 2413e9e8\n" + Std.string(SUtil.errMsg), 18);
 		errorMessage.scrollFactor.set();
 		errorMessage.color = FlxColor.WHITE;
 		errorMessage.wordWrap = true;
