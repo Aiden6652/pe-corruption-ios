@@ -347,16 +347,17 @@ class Note extends FlxSprite
 		return false;
 	}
 
-	function addAnimSafe(name:String, prefix:String) {
-		// 帧存在才注册；缺失时退回该列基础帧，保证长条/滚动动画播放永不因缺帧崩溃
+	// allowGenericFallback: 只有滚动帧才允许退到"该列基础帧"。
+	// 长条(hold/holdend)必须严格用长条贴图 —— 原来的最后一级兜底会取首帧名的第一个字母
+	// (atlas 首帧是 arrowDOWN0000 -> 'a')，把 atlas 里全部 arrow* 帧都匹配进长条动画，
+	// 长音符因此渲染成"一堆被拉长的下键"。这个兜底已删除。
+	function addAnimSafe(name:String, prefix:String, allowGenericFallback:Bool = true) {
 		if(hasFramePrefix(prefix)) {
 			animation.addByPrefix(name, prefix);
-		} else if(hasFramePrefix(colArray[noteData] + '0')) {
-			animation.addByPrefix(name, colArray[noteData] + '0');
-		} else if(hasFramePrefix('0')) {
-			animation.addByPrefix(name, '0');
-		} else if(frames != null && frames.frames.length > 0 && frames.frames[0].name != null) {
-			animation.addByPrefix(name, frames.frames[0].name.substring(0, 1));
+			return;
+		}
+		if(allowGenericFallback && hasFramePrefix(colArray[noteData % 4] + '0')) {
+			animation.addByPrefix(name, colArray[noteData % 4] + '0');
 		}
 	}
 
@@ -366,9 +367,9 @@ class Note extends FlxSprite
 
 		if (isSustainNote)
 		{
-			addAnimSafe('purpleholdend', 'pruple end hold');
-			addAnimSafe(colArray[noteData] + 'holdend', colArray[noteData] + ' hold end');
-			addAnimSafe(colArray[noteData] + 'hold', colArray[noteData] + ' hold piece');
+			addAnimSafe('purpleholdend', 'pruple end hold', false);
+			addAnimSafe(colArray[noteData] + 'holdend', colArray[noteData] + ' hold end', false);
+			addAnimSafe(colArray[noteData] + 'hold', colArray[noteData] + ' hold piece', false);
 		}
 
 		setGraphicSize(Std.int(width * 0.7));
